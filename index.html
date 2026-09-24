@@ -22,6 +22,13 @@
   #gl{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none}
   body.play #gl{cursor:crosshair}
   #veil{position:fixed;inset:0;background:#000;z-index:30;pointer-events:none;opacity:1;transition:opacity 1.6s ease}
+  #load{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff4d6;font-family:var(--display),serif;letter-spacing:.24em}
+  #load .lt{font-size:clamp(1.8rem,5vw,3.2rem);font-weight:800;text-shadow:0 0 24px rgba(255,220,150,.35)}
+  #load .lm{font-family:var(--pix),monospace;font-size:.9rem;letter-spacing:.2em;color:rgba(255,244,214,.75)}
+  #load .lb{width:min(320px,60vw);height:3px;background:rgba(255,255,255,.14);border-radius:2px;overflow:hidden}
+  #load .lb i{display:block;height:100%;width:8%;background:linear-gradient(90deg,#f6d58a,#fff4d6);transition:width .5s ease}
+  #load .lm::after{content:'…';animation:lddot 1.2s steps(3) infinite}
+  @keyframes lddot{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
   #veil.off{opacity:0}
   #vign{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;
     background:radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(150,0,0,.55) 82%,rgba(120,0,0,.9) 100%)}
@@ -271,7 +278,8 @@
   </div>
 </div>
 <div id="pconly" class="win">このゲームは PC（キーボードとマウス）向けです。</div>
-<div id="veil"></div>
+<div id="veil"><div id="load"><div class="lt">はじまりの大地</div><div class="lm" id="loadmsg">よみこんでいます</div><div class="lb"><i id="loadbar"></i></div></div></div>
+<script>window.__load=function(m,p){var a=document.getElementById('loadmsg'),b=document.getElementById('loadbar');if(a&&m)a.textContent=m;if(b&&p!=null)b.style.width=Math.round(p*100)+'%';};</script>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
@@ -286,6 +294,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+__load('せかいを つくっています', .35);
 const $ = s => document.querySelector(s);
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -5680,6 +5689,7 @@ function partyLoad(d) {
 }
 
 /* ---------- boot ---------- */
+__load('まものと ひとを はいちしています', .7);
 populate();
 spawnBoss();
 setupWorldInteract();
@@ -5690,6 +5700,7 @@ buildSword();
 placeStart();
 setupDebug();
 applyTime(G.hour);
+__load('もうすぐです', .96);
 requestAnimationFrame(frame);
 </script>
 </body></html>
