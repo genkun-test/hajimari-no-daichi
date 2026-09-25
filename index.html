@@ -2037,7 +2037,7 @@ const P = {
   lv: 1, exp: 0, gold: 50, hp: 24, mp: 6, weapon: 0, armor: 0, items: { herb: 3, water: 0, wing: 1 }, chests: {},
   pos: V3(), vy: 0, yaw: 0, pitch: 0, onGround: true, crouch: 0, guard: false, guardT: 0, swingT: -1, swingDir: 1, swingHit: false,
   castT: -1, castKind: '', castDone: false, itemCD: 0, iframes: 0, hurtT: 0, dead: false, kb: V3(), realm: 'out', ci: 0,
-  dodge: { t: -1, dir: V3(), dur: 0.24, dist: 3, cd: 0, ifr: 0.2 }, land: 0, bob: 0, stepPh: 0, hvel: 0, shiftHeld: false, shiftAt: 0, sprintT: 0, bufAtk: 0, deadT: 0,
+  dodge: { t: -1, dir: V3(), dur: 0.24, dist: 3, cd: 0, ifr: 0.2 }, land: 0, bob: 0, stepPh: 0, hvel: 0, shiftHeld: false, shiftAt: 0, dashToggle: false, sprintT: 0, bufAtk: 0, deadT: 0,
 };
 const stats = () => { const l = LV[P.lv]; return { maxhp: l.hp, maxmp: l.mp * 2, str: l.str, def: l.def, agi: l.agi, atk: Math.round((l.str + WEAPONS[P.weapon].atk) * (P.buffT > 0 ? 1.3 : 1)), dfn: Math.round((l.def + ARMORS[P.armor].def) * (P.defUpT > 0 ? 1.5 : 1)) }; };
 function dodgeStats(agi) { const t = clamp((agi - 6) / 18, 0, 1); return { ifr: 0.18 + 0.17 * t, dist: 3 + 2 * t, cd: 0.9 - 0.45 * t }; }
@@ -3684,7 +3684,7 @@ function renderMenu() {
       <span>けいけんち</span><span>${P.exp}</span><span>つぎのLvまで</span><span>${next}</span><span>ゴールド</span><span>${P.gold} G</span></div>
       <div style="margin-top:8px;font-size:.82rem;color:var(--dim);line-height:1.6">かわし: むてき ${ds.ifr.toFixed(2)}びょう・${ds.dist.toFixed(1)}m・つぎまで ${ds.cd.toFixed(2)}びょう（すばやさ しだい）</div></div>
       <div class="win" style="font-size:.8rem;line-height:1.75"><h3>そうさ</h3>
-        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> いどう <kbd>Space</kbd> ジャンプ<br><kbd>Shift</kbd> おしっぱなし=ダッシュ／みじかく=ステップ<br><kbd>C</kbd> しゃがむ（たまを よけやすい）<br>
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> いどう <kbd>Space</kbd> ジャンプ<br><kbd>Shift</kbd> みじかく=ステップ／${DS.mode === 'toggle' ? 'ながおし して はなす=ダッシュ 切り替え' : 'おしっぱなし=ダッシュ'}<br><kbd>C</kbd> しゃがむ（たまを よけやすい）<br>
         <kbd>左クリック</kbd> けん（ながおし＝れんぞく／ステップ直後＝疾風返し／空中＝天墜斬／着地の瞬間＝極） <kbd>右クリック</kbd> ぼうぎょ（ちょうどで はじく）<br><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd> じゅもん（G で おぼえる）<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> どうぐ<br><kbd>F</kbd> はなす・しらべる <kbd>M</kbd> ちず <kbd>L</kbd> 禁断の魔導書 <kbd>Esc</kbd> このがめん</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;width:300px">
@@ -3696,6 +3696,7 @@ function renderMenu() {
       <div class="win" style="font-size:.84rem;line-height:1.75"><h3>そうさ・こえ</h3>
         <label style="display:grid;grid-template-columns:6em 1fr 3em;gap:8px;align-items:center"><span>マウス感度</span><input type="range" id="m-sens" min="0.1" max="5" step="0.05" value="${MS.sens}"><span id="m-sensv">${MS.sens.toFixed(2)}</span></label>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-inv" ${MS.inv ? 'checked' : ''}> 上下を反転</label>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center"><span style="width:5.5em">ダッシュ</span><label><input type="radio" name="dmode" value="hold" ${DS.mode === 'hold' ? 'checked' : ''}> 長押し</label><label><input type="radio" name="dmode" value="toggle" ${DS.mode === 'toggle' ? 'checked' : ''}> 切り替え</label></div>
         <div class="tacs" style="align-items:center"><span style="width:5.5em">画質</span>${['auto', 'low', 'mid', 'high'].map(v => `<button class="btn gfxb${GFX.set === v ? ' on' : ''}" data-g="${v}" type="button">${{ auto: '自動', low: '低', mid: '中', high: '高' }[v]}</button>`).join('')}</div>
         <div style="display:flex;gap:14px;flex-wrap:wrap"><label><input type="radio" name="vmode" value="ptt" ${VO.mode === 'ptt' ? 'checked' : ''}> V を おしている間</label><label><input type="radio" name="vmode" value="auto" ${VO.mode === 'auto' ? 'checked' : ''}> 自動（常時）</label></div>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-chant" ${VO.chant ? 'checked' : ''}> 自動のとき 呪文らしい文だけ 魔法にする（ほかは「詠唱」で はじめる）</label>
@@ -3712,6 +3713,7 @@ function renderMenu() {
   $('#m-grim').onclick = () => { panel.hidden = true; G.mode = 'play'; openGrim(); }; // マウスは固定しない（頁を押せるように）
   $('#m-sens').oninput = e => { MS.sens = +e.target.value; $('#m-sensv').textContent = MS.sens.toFixed(2); saveMouse(); };
   $('#m-inv').onchange = e => { MS.inv = e.target.checked; saveMouse(); };
+  panel.querySelectorAll('input[name=dmode]').forEach(r => r.onchange = () => { DS.mode = r.value; P.dashToggle = false; saveDash(); renderMenu(); });
   panel.querySelectorAll('.gfxb').forEach(b => b.onclick = () => { setGfx(b.dataset.g); sfx('ok', null, { ui: true }); renderMenu(); });
   panel.querySelectorAll('input[name=vmode]').forEach(r => r.onchange = () => { VO.mode = r.value; saveVoice(); if (VO.mode === 'auto') voiceStart(); else voiceStop(); voiceUI(); });
   $('#m-chant').onchange = e => { VO.chant = e.target.checked; saveVoice(); };
@@ -3881,9 +3883,17 @@ addEventListener('mousedown', e => {
   if (LOCK.drag) LOCK.dragging = true;
 });
 addEventListener('mouseup', e => { if (e.button === 2) P.guard = false; if (e.button === 0) P.holdAtk = false; LOCK.dragging = false; });
+let lastMX = 0, lastMY = 0;
 addEventListener('mousemove', e => {
   if (G.mode !== 'play' || P.dead) return;
-  if (LOCK.locked && (Math.abs(e.movementX) > 250 || Math.abs(e.movementY) > 250)) return;
+  const mx = e.movementX, my = e.movementY;
+  if (LOCK.locked) {
+    // Chrome が まれに一瞬だけ返す異常値（直前から急に向きが反転した巨大な値）だけ捨てる。本物の速い振りは通す
+    const spike = (Math.abs(mx) > 250 && lastMX !== 0 && Math.sign(mx) !== Math.sign(lastMX)) ||
+                  (Math.abs(my) > 250 && lastMY !== 0 && Math.sign(my) !== Math.sign(lastMY));
+    lastMX = mx; lastMY = my;
+    if (spike) return;
+  } else { lastMX = mx; lastMY = my; }
   if (LOCK.locked || (LOCK.drag && LOCK.dragging)) { const k = (LOCK.locked ? 0.0021 : 0.004) * MS.sens; P.yaw -= e.movementX * k; P.pitch = clamp(P.pitch - e.movementY * k * (MS.inv ? -1 : 1), -1.45, 1.45); }
 });
 let ctrlWarned = false;
@@ -3942,7 +3952,12 @@ addEventListener('keyup', e => {
   const c = e.code; KEYS[c] = false;
   if (c === 'KeyV' && VO.mode !== 'auto' && VO.holding) { VO.holding = false; voiceStop(); }
   if (c === 'KeyX' && VO.holdX) { VO.holdX = false; if (VO.mode !== 'auto') { VO.holding = false; voiceStop(); } else VO.entryT = setTimeout(() => { VO.entry = null; voiceUI(); }, 1500); } // 離した後に届く確定結果も詠唱として扱う
-  if ((c === 'ShiftLeft' || c === 'ShiftRight') && P.shiftHeld) { P.shiftHeld = false; if (performance.now() - P.shiftAt < 200 && G.mode === 'play') tryDodge(); }
+  if ((c === 'ShiftLeft' || c === 'ShiftRight') && P.shiftHeld) {
+    P.shiftHeld = false;
+    const heldMs = performance.now() - P.shiftAt;
+    if (heldMs < 200 && G.mode === 'play') tryDodge();
+    else if (DS.mode === 'toggle' && G.mode === 'play') P.dashToggle = !P.dashToggle; // 長押しして はなす＝ダッシュの切り替え
+  }
 });
 addEventListener('blur', () => KEYS_CLEAR());
 
@@ -4001,15 +4016,15 @@ function landingWave(just) {
   if (hit) chainHit(just ? 'just' : 'aerial');
   P.swingT = swingTimes().wind; P.swingHit = true; P.skill = just ? 'just' : 'aerial';
 }
-function attack() {
+function attack(fresh = true) {
   if (P.dead) return;
   if (P.swingT >= 0 || P.castT >= 0 || P.dodge.t >= 0 || P.plunge) { P.bufAtk = 0.25; return; }
   const k = skillK(); let skill = null;
   if (!P.onGround) {
     const h = P.pos.y - (P.realm === 'cave' ? CV.P[P.ci].y : groundAt(P.pos.x, P.pos.z));
-    if (P.vy < 0 && h < -P.vy * k.just + 0.05) { P.justPend = G.playT; P.bufAtk = 0; return; } // 着地の直前: ジャスト待ち
+    if (fresh && P.vy < 0 && h < -P.vy * k.just + 0.05) { P.justPend = G.playT; P.bufAtk = 0; return; } // 着地の直前: ジャスト待ち（新規押しのみ）
     if (h > 0.6) skill = 'aerial';
-  } else if (P.landAir && G.playT - (P.landT ?? -9) <= k.just) { P.landAir = false; P.swingCount = (P.swingCount || 0) + 1; landingWave(true); return; }
+  } else if (fresh && P.landAir && G.playT - (P.landT ?? -9) <= k.just) { P.landAir = false; P.swingCount = (P.swingCount || 0) + 1; landingWave(true); return; }
   else if (G.playT - (P.dodgeEnd ?? -9) <= k.dslash) skill = 'dodge';
   P.swingCount = (P.swingCount || 0) + 1;
   P.swingT = 0; P.swingDir *= -1; P.swingHit = false; P.bufAtk = 0; P.skill = skill;
@@ -4246,7 +4261,7 @@ function updatePlayer(rdt, dt) {
   const mi = moveInput(); const moving = mi.v.lengthSq() > 0.01 && !cine;
   const crouchWant = KEYS.KeyC ? 1 : 0;
   P.crouch = lerp(P.crouch, crouchWant, 1 - Math.exp(-rdt * 12));
-  const dash = P.shiftHeld && moving && mi.mz >= 0 && P.crouch < 0.5 && !P.guard;
+  const dash = (DS.mode === 'toggle' ? P.dashToggle : P.shiftHeld) && moving && mi.mz >= 0 && P.crouch < 0.5 && !P.guard;
   let spd = (dash ? 8.3 : 4.6) * (P.spdUpT > 0 ? 1.3 : 1);
   if (P.crouch > 0.5) spd *= 0.5; if (P.guard) spd *= 0.5; if (mi.mz < 0) spd *= 0.82;
   if (P.swingT >= 0) spd *= 0.75;
@@ -4255,7 +4270,7 @@ function updatePlayer(rdt, dt) {
   const acc = P.onGround ? 14 : 3;
   vel.x = lerp(vel.x, want.x, 1 - Math.exp(-rdt * acc)); vel.z = lerp(vel.z, want.z, 1 - Math.exp(-rdt * acc));
   let mvx = vel.x, mvz = vel.z;
-  if (P.dodge.t >= 0) { const u = P.dodge.t / P.dodge.dur, v = P.dodge.dist / P.dodge.dur * 2 * (1 - u); mvx = P.dodge.dir.x * v; mvz = P.dodge.dir.z * v; P.dodge.t += rdt; if (P.dodge.t >= P.dodge.dur) { P.dodge.t = -1; blurPass.enabled = false; P.dodgeEnd = G.playT; if (P.bufAtk > 0) attack(); } }
+  if (P.dodge.t >= 0) { const u = P.dodge.t / P.dodge.dur, v = P.dodge.dist / P.dodge.dur * 2 * (1 - u); mvx = P.dodge.dir.x * v; mvz = P.dodge.dir.z * v; P.dodge.t += rdt; if (P.dodge.t >= P.dodge.dur) { P.dodge.t = -1; blurPass.enabled = false; P.dodgeEnd = G.playT; if (P.bufAtk > 0) attack(false); } }
   P.dodge.cd -= rdt;
   mvx += P.kb.x; mvz += P.kb.z; P.kb.multiplyScalar(Math.exp(-rdt * 7));
   const ox = P.pos.x, oz = P.pos.z;
@@ -4281,8 +4296,8 @@ function updatePlayer(rdt, dt) {
   // timers
   P.iframes -= rdt; P.hurtT = Math.max(0, P.hurtT - rdt); P.itemCD -= rdt; P.bufAtk = (P.bufAtk || 0) - rdt;
   if (P.guard) P.guardT += rdt;
-  if (P.swingT >= 0) { P.swingT += G.mikiriT > 0 ? rdt : dt; const T = swingTimes(); if (!P.swingHit && P.swingT >= T.wind + 0.05) { P.swingHit = true; doSwingHit(); } if (P.swingT >= T.total) { P.swingT = -1; P.skill = null; if (P.bufAtk > 0 || (P.holdAtk && P.onGround)) attack(); } }
-  else if (P.holdAtk && P.onGround && P.dodge.t < 0 && P.castT < 0 && !P.plunge && G.mode === 'play') attack();
+  if (P.swingT >= 0) { P.swingT += G.mikiriT > 0 ? rdt : dt; const T = swingTimes(); if (!P.swingHit && P.swingT >= T.wind + 0.05) { P.swingHit = true; doSwingHit(); } if (P.swingT >= T.total) { P.swingT = -1; P.skill = null; if (P.bufAtk > 0 || (P.holdAtk && P.onGround)) attack(false); } }
+  else if (P.holdAtk && P.onGround && P.dodge.t < 0 && P.castT < 0 && !P.plunge && G.mode === 'play') attack(false);
   if (P.castT >= 0) { P.castT += dt; const cdur = P.castDur || 0.28; if (!P.castDone && P.castT >= cdur) { P.castDone = true; releaseSpell(); } if (P.castT > cdur + 0.27) P.castT = -1; }
   // interact prompt
   const it = nearInter(), pr = $('#prompt');
@@ -4472,7 +4487,7 @@ function demoTick(rdt) {
   P.yaw += angDiff(P.yaw, ty) * (1 - Math.exp(-rdt * 6)); P.pitch = lerp(P.pitch, -0.06, 0.1);
   if (bd > (best.D.r + 2.2)) { KEYS.KeyW = true; } else KEYS.KeyW = false;
   G.demoT = (G.demoT || 0) - rdt;
-  if (G.demoT <= 0) { attack(); G.demoT = 0.42; }
+  if (G.demoT <= 0) { attack(false); G.demoT = 0.42; }
   G.demoF = (G.demoF || 2.5) - rdt;
   if (G.demoF <= 0 && spellE()) { P.mp = stats().maxmp; castSpell('E'); G.demoF = 3.2; }
 }
@@ -4802,6 +4817,27 @@ function runTests() {
     CHAIN.n = 0; CHAIN.last = -9; chainHit('dodge'); chainHit('normal'); chainHit('aerial'); if (!(chainMult() > 1)) throw new Error('chain'); chainHit('aerial'); if (CHAIN.n !== 3) throw new Error('same move should not count');
     for (let i = 0; i < 20; i++) updStyle(0.016);
     console.log('STYLE dslash ' + k.dslash.toFixed(2) + ' mikiri ' + k.mikiri.toFixed(2) + ' slow ' + k.slow.toFixed(2) + ' just ' + k.just.toFixed(2) + ' chainx ' + chainMult().toFixed(2));
+  });
+  T('held atk no just on land', () => { // フィードバック: クリック押しっぱなしで着地しても ジャスト（天墜斬・極）は出ない
+    G.mode = 'play'; P.dead = false; setRealm('out'); P.pos.set(20, groundAt(20, 230), 230);
+    P.swingT = -1; P.skill = null; P.castT = -1; P.plunge = false; P.dodge.t = -1; P.dodgeEnd = -9; P.justPend = undefined;
+    const gy = groundAt(P.pos.x, P.pos.z);
+    P.onGround = false; P.pos.y = gy + 3; P.vy = 0; P.airT = 0; P.landAir = false;
+    P.holdAtk = true; G.lastWave = null;
+    for (let i = 0; i < 90 && !P.onGround; i++) updatePlayer(0.016, 0.016);
+    if (!P.onGround) { P.holdAtk = false; throw new Error('did not land in time'); }
+    updatePlayer(0.016, 0.016); P.holdAtk = false;
+    if (G.lastWave === 'just') throw new Error('押しっぱなしの着地で ジャストが出た');
+  });
+  T('mouse spike vs real swing', () => { // フィードバック: 画面を速く振ると途中でカクつく（本物の速い振りは通し、一瞬の異常値だけ捨てる）
+    G.mode = 'play'; P.dead = false; LOCK.locked = true; LOCK.drag = false; LOCK.dragging = false;
+    lastMX = 0; lastMY = 0; P.yaw = 0;
+    for (let i = 0; i < 5; i++) dispatchEvent(new MouseEvent('mousemove', { movementX: 300, movementY: 0 }));
+    if (Math.abs(P.yaw) < 0.01) throw new Error('速い連続スイングが捨てられた yaw=' + P.yaw);
+    const yawAfterSwing = P.yaw;
+    dispatchEvent(new MouseEvent('mousemove', { movementX: -400, movementY: 0 })); // 直前と逆向きの一瞬の異常値
+    if (Math.abs(P.yaw - yawAfterSwing) > 1e-6) throw new Error('異常値が捨てられなかった yaw ' + yawAfterSwing + ' -> ' + P.yaw);
+    LOCK.locked = false;
   });
   T('counter', () => {
     G.mode = 'play'; P.dead = false; setRealm('out'); P.pos.set(20, groundAt(20, 230), 230); P.yaw = 0; P.onGround = true; P.swingT = -1; P.castT = -1; P.plunge = false; P.skill = null; G.mikiriT = 0; P.iframes = 0; P.dodge.t = -1; P.landAir = false; P.dodgeEnd = -9;
@@ -6776,10 +6812,13 @@ function setupLab(n) {
 /* ---------- 音声・文字入力・ルーター ---------- */
 const VO = { mode: 'ptt', chant: true, rec: null, on: false, denied: false, want: false, holding: false };
 const MS = { sens: 1, inv: false };
+const DS = { mode: 'hold' }; // ダッシュ: hold=おしっぱなし（既定）／toggle=長押しして はなすたびに 切り替え
 try { const v = JSON.parse(localStorage.getItem('hajimari-voice') || 'null'); if (v) Object.assign(VO, { mode: v.mode === 'auto' ? 'auto' : 'ptt', chant: v.chant !== false }); } catch (e) {}
 try { const v = JSON.parse(localStorage.getItem('hajimari-mouse') || 'null'); if (v) { MS.sens = clamp(+v.sens || 1, 0.1, 5); MS.inv = !!v.inv; } } catch (e) {}
+try { const v = JSON.parse(localStorage.getItem('hajimari-dash') || 'null'); if (v) DS.mode = v.mode === 'toggle' ? 'toggle' : 'hold'; } catch (e) {}
 function saveVoice() { try { localStorage.setItem('hajimari-voice', JSON.stringify({ mode: VO.mode, chant: VO.chant })); } catch (e) {} }
 function saveMouse() { try { localStorage.setItem('hajimari-mouse', JSON.stringify(MS)); } catch (e) {} }
+function saveDash() { try { localStorage.setItem('hajimari-dash', JSON.stringify(DS)); } catch (e) {} }
 const voiceOK = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 function voiceLine(text, cls = '') { const el = $('#vres'); el.textContent = text; el.className = cls; clearTimeout(voiceLine.t); voiceLine.t = setTimeout(() => { el.textContent = ''; }, 6000); }
 function voiceUI() { const b = $('#voice'); b.classList.toggle('live', VO.on); $('#vstate').textContent = VO.denied ? 'マイク不可（T 指示 ／ Shift+T 詠唱 で文字入力）' : VO.on ? (VO.entry === 'cast' ? 'きいています…（詠唱）' : VO.mode === 'auto' ? 'きいています（自動）' : 'きいています…（指示）') : (VO.mode === 'auto' ? '自動：V で再開 ／ X 詠唱' : 'V 指示 ／ X 詠唱（おしながら はなす）');
