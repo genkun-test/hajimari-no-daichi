@@ -207,7 +207,7 @@
   #mikiri{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(120,220,255,.35) 85%,rgba(200,245,255,.6) 100%)}
   #parryglow{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(255,200,80,.35) 86%,rgba(255,230,140,.65) 100%)}
   #learnhint{position:fixed;left:50%;top:calc(max(11%,88px) + 168px);transform:translateX(-50%);z-index:8;font-size:1rem;padding:4px 12px;opacity:0;transition:opacity .3s;pointer-events:none;text-shadow:0 0 4px #000,0 0 2px #000}
-  #learnhint.on{opacity:1} #learnhint kbd{font-family:var(--pix);border:2px solid #fff;border-bottom-width:4px;border-radius:5px;padding:0 .35em;margin-right:.4em;background:rgba(255,255,255,.1)}
+  #learnhint.on{opacity:1} #learnhint.on.small{opacity:.55;font-size:.78rem} #learnhint kbd{font-family:var(--pix);border:2px solid #fff;border-bottom-width:4px;border-radius:5px;padding:0 .35em;margin-right:.4em;background:rgba(255,255,255,.1)}
   #learn{position:fixed;left:50%;top:32%;transform:translateX(-50%);z-index:15;width:min(560px,calc(100% - 32px));pointer-events:auto}
   #learn[hidden]{display:none} #learn kbd{font-family:var(--pix);border:1px solid rgba(255,255,255,.7);border-radius:4px;padding:0 .3em;margin-right:.3em}
   .book .blist{max-height:230px;overflow:auto;pointer-events:auto}
@@ -250,6 +250,7 @@
   #grim .g-nm{display:block;font-size:.86rem;line-height:1.35}
   #grim .g-tx{display:block;font-family:var(--display);font-size:.8rem;line-height:1.45;color:#e6dcc8;letter-spacing:.03em}
   #grim .g-note{display:block;font-size:.68rem;color:var(--faint);margin-top:1px}
+  #grim .g-go{display:block;height:0;overflow:hidden;font-size:.66rem;color:var(--gold);opacity:0;transition:opacity .15s} #grim .g-sp:hover .g-go,#grim .g-sp:focus-visible .g-go{height:auto;opacity:.85;margin-top:1px}
   #grim .g-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:6px;font-size:.74rem;color:var(--dim)}
   #grim .g-foot kbd{font-family:var(--pix);border:1px solid rgba(255,255,255,.7);border-radius:4px;padding:0 .35em;margin-right:.3em;color:#fff}
   #grim .g-cover{position:absolute;inset:0;border-radius:10px;transform-origin:0 50%;pointer-events:none;overflow:hidden;
@@ -2004,7 +2005,7 @@ const MAXLV = LV.length - 1;
 const LEARN = { 1: 'heal', 3: 'fire', 6: 'fire2', 8: 'heal2' };
 const SPELL = {
   heal: { name: 'いやし', mp: 3, key: 'Q', desc: 'HPを 30ほど かいふく' },
-  heal2: { name: 'おおいやし', mp: 6, key: 'Q', desc: 'HPを 90ほど かいふく' },
+  heal2: { name: 'おおいやし', mp: 6, key: 'Q', desc: 'じぶんと 近くの 仲間の HPを 90ほど かいふく' },
   fire: { name: 'ほむら', mp: 4, key: 'E', desc: 'ひのたまを うつ（16〜22）' },
   fire2: { name: 'おおほむら', mp: 7, key: 'E', desc: 'おおきな ひのたま（38〜48・はんい）' },
 };
@@ -3697,7 +3698,7 @@ function renderMenu() {
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-inv" ${MS.inv ? 'checked' : ''}> 上下を反転</label>
         <div class="tacs" style="align-items:center"><span style="width:5.5em">画質</span>${['auto', 'low', 'mid', 'high'].map(v => `<button class="btn gfxb${GFX.set === v ? ' on' : ''}" data-g="${v}" type="button">${{ auto: '自動', low: '低', mid: '中', high: '高' }[v]}</button>`).join('')}</div>
         <div style="display:flex;gap:14px;flex-wrap:wrap"><label><input type="radio" name="vmode" value="ptt" ${VO.mode === 'ptt' ? 'checked' : ''}> V を おしている間</label><label><input type="radio" name="vmode" value="auto" ${VO.mode === 'auto' ? 'checked' : ''}> 自動（常時）</label></div>
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-chant" ${VO.chant ? 'checked' : ''}> 自動のとき 中二病魔法は「詠唱」で はじめる</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-chant" ${VO.chant ? 'checked' : ''}> 自動のとき 呪文らしい文だけ 魔法にする（ほかは「詠唱」で はじめる）</label>
         <div style="font-size:.8rem;color:var(--dim)">AI（ローカル）: ${OLL.ok ? 'つながっています（' + OLL.model + '）' : 'つながっていません → 規則で変換'}</div>
         <div class="btnrow"><button class="btn" id="m-party" type="button">なかまと さくせん</button></div></div>
       <div class="win" style="font-size:.9rem"><h3>おと</h3>${vol('music', 'BGM')}${vol('amb', 'かんきょう')}${vol('sfx', 'こうかおん')}${vol('ui', 'UI')}
@@ -3930,7 +3931,7 @@ addEventListener('keydown', e => {
     case 'KeyX': clearTimeout(VO.entryT); VO.entry = 'cast'; VO.holdX = true; if (!VO.on) { VO.holding = true; voiceStart(); } voiceUI(); break;
     case 'KeyT': openType(e.shiftKey ? 'cast' : 'order'); break;
     case 'KeyR': castSpell('R'); pulseSlot(7); break;
-    case 'KeyG': if (G.learnOffer && G.playT < G.learnOffer.until) openLearn(G.learnOffer.sp); break;
+    case 'KeyG': pressLearn(); break;
     case 'KeyM': G.mode = 'map'; releaseLock(); drawBigMap(); $('#bigmap').hidden = false; break;
     case 'KeyL': toggleGrim(); break;
     case 'Escape': if (GRIM.open) { closeGrim(); break; } openMenu(); break;
@@ -4116,7 +4117,10 @@ function releaseSpell() {
     const amt = Math.min(s.maxhp - P.hp, Math.round(k === 'heal2' ? rnd(85, 95) : rnd(25, 35)));
     P.hp += amt; sfx('heal'); popNum(playerChest().addScaledVector(camFwd(), 1.3).add(V3(0, 0.4, 0)), '+' + amt, 'heal');
     for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, r = rnd(0.5, 1.2); SPARK.spawn({ p: P.pos.clone().add(V3(Math.cos(a) * r, rnd(0, 1.6), Math.sin(a) * r)), v: V3(0, rnd(1, 3), 0), life: rnd(0.6, 1.2), size: 0.1, color: 0x7cf29a }); }
-    log(`${SPELL[k].name}の じゅもんを となえた！ HPが ${amt} かいふくした。`);
+    let also = ''; if (k === 'heal2') { // おおいやしは 近くの 仲間も（倒れている 仲間は 起こせない）
+      const got = []; for (const a of PARTY.members) { if (!a.alive || !a.pos || a.pos.distanceTo(P.pos) > 25) continue; const h = Math.min(allyStats(a).maxhp - a.hp, Math.round(rnd(85, 95))); if (h > 0) { a.hp += h; got.push(`${a.name}+${h}`); } }
+      if (got.length) also = `（${got.join('・')}）`; }
+    log(`${SPELL[k].name}の じゅもんを となえた！ HPが ${amt} かいふくした。${also}`);
   } else {
     const dir = V3(); camera.getWorldDirection(dir);
     const start = camera.position.clone().addScaledVector(dir, 0.9).add(V3(0, -0.15, 0));
@@ -4558,7 +4562,7 @@ function setupDebug() {
   }
 }
 function runTests() {
-  let ok = 0, ng = 0;
+  let ok = 0, ng = 0; const late = []; // late: 非同期で進むもの（本の頁 → 詠唱の欄 → 唱える）を 最後の 3 秒の後で確かめる
   const T = (name, fn) => { try { fn(); ok++; } catch (e) { ng++; console.error('TEST FAIL', name, e && e.stack || e); } };
   T('start', () => startGame(false));
   T('dialog', () => { for (let i = 0; i < 10; i++) { DLG.shown = 999; dlgAdvance(); } if (G.mode !== 'play') throw new Error('dialog not closed: ' + G.mode); });
@@ -4606,6 +4610,92 @@ function runTests() {
     const g = PARTY.members.find(a => a.name === 'ガルド'); if (g) { g.temp = null; handleUtterance('ガルド、下がれ', { typed: true, entry: 'cast' }); if (g.temp) bad.push('cast entry gave order'); }
     if (bad.length) throw new Error(bad.join(' / ')); console.log('ROUTER-ENTRY ok');
   });
+  // 声の分担（circle 2026-09-25「タンクの前で回復は後ろ」が聞き流された）: 役割・名前ごとに受け取り、仲間ごとに返事し、立ち位置が実際に変わる
+  const withParty = fn => { const keep = PARTY.members.slice(); for (const a of keep) removeAllyModel(a); PARTY.members = [];
+    const mk = (name, cls) => { const a = newAlly({ name, cls, human: true, lv: 5 }); addToParty(a, true); return a; };
+    try { fn(mk('ガルド', 'warrior'), mk('ティナ', 'mage'), mk('リオ', 'thief')); } finally { for (const a of PARTY.members) removeAllyModel(a); PARTY.members = keep; for (const a of keep) buildAlly(a); updPartyHUD(true); } };
+  T('voice-roles', () => withParty((g, t, r) => {
+    G.mode = 'play'; P.dead = false; setRealm('out'); const bad = [];
+    const cases = [['タンクの前で回復は後ろ', { ガルド: 'front', ティナ: 'back' }], ['タンクは前、回復は後ろ', { ガルド: 'front', ティナ: 'back' }], ['前衛が引きつけて後衛は魔法', { ガルド: 'front', ティナ: 'back' }],
+      ['みんな、タンクは前で回復役は後ろ', { ガルド: 'front', ティナ: 'back' }], ['ヒーラーは後ろで回復に専念', { ティナ: 'back' }], ['アタッカーは横から攻めろ', { リオ: 'side' }], ['ティナは前、ガルドは後ろ', { ティナ: 'front', ガルド: 'back' }], ['魔法使いは後ろから魔法', { ティナ: 'back' }]];
+    for (const [q, want] of cases) for (const o of [{ auto: true }, { entry: 'order' }]) {
+      const res = routeUtterance(q, o); if (res.kind !== 'party-roles') { bad.push(q + ' ' + res.kind); continue; }
+      const got = Object.fromEntries(res.assign.map(x => [x.a.name, x.pos])); for (const k in want) if (got[k] !== want[k]) bad.push(q + ' ' + k + '=' + got[k]);
+    }
+    const t2 = routeUtterance('前衛が引きつけて後衛は魔法', { auto: true }).assign.find(x => x.a === t); if (!t2 || t2.act !== 'cast') bad.push('後衛は魔法 → ' + (t2 && t2.act));
+    for (const q of ['ティナ、回復して', 'ガルド、下がれ', '全員、慎重に戦え！', '我らに癒しの加護を', '守護の騎士よ、我が盾となれ']) if (routeUtterance(q).kind === 'party-roles') bad.push('分担と取り違え ' + q);
+    // 立ち位置が実際に変わる: 逆の分担 → 実例の分担、で ガルドが まえ・ティナが うしろ へ動く
+    P.pos.set(20, groundAt(20, 230), 230); P.yaw = 0; P.pitch = 0; const f = camFwd();
+    for (const e of ENEMIES) if (!e.dead && e.realm === 'out' && Math.hypot(e.pos.x - P.pos.x, e.pos.z - P.pos.z) < 45) { e.state = 'idle'; e.st = 0; }
+    const along = a => (a.pos.x - P.pos.x) * f.x + (a.pos.z - P.pos.z) * f.z, sim = () => { for (let i = 0; i < 300; i++) updAllies(0.02); };
+    for (const a of [g, t, r]) { a.pos.copy(P.pos).add(V3(0, 0, 3)); a.alive = true; a.temp = null; a.intent = null; }
+    handleUtterance('ティナは前、ガルドは後ろ', { auto: true }); sim(); const g0 = along(g), t0 = along(t);
+    if (!(t0 > 1.2 && g0 < -1.2)) bad.push(`逆の分担で動かない ガルド${g0.toFixed(1)} ティナ${t0.toFixed(1)}`);
+    handleUtterance('タンクの前で回復は後ろ', { auto: true }); const said = $('#vres').textContent; sim(); const g1 = along(g), t1 = along(t);
+    if (!(g1 > 1.2 && t1 < -1.2)) bad.push(`実例の分担で動かない ガルド${g1.toFixed(1)} ティナ${t1.toFixed(1)}`);
+    if (!/ガルド→まえ/.test(said) || !/ティナ→うしろ/.test(said)) bad.push('返事 ' + said);
+    if (g.stance !== 'front' || t.stance !== 'back' || t.tactic !== 'heal') bad.push('状態 ' + g.stance + '/' + t.stance + '/' + t.tactic);
+    const sv = partySave(); if (sv.m.find(x => x.name === 'ガルド').stance !== 'front') bad.push('保存されない');
+    if (bad.length) throw new Error(bad.join(' / '));
+    console.log(`VOICE-ROLES ok ${cases.length}文 ・ 逆 ガルド${g0.toFixed(1)}/ティナ${t0.toFixed(1)} → 実例 ガルド${g1.toFixed(1)}/ティナ${t1.toFixed(1)} ・ 返事「${said}」`);
+  }));
+  T('voice-chat', () => withParty(() => { // circle 2026-09-25「さあ行くぞ」が聞き流された。掛け声・雑談には仲間が返事する。独り言だけ聞き流す
+    G.mode = 'play'; P.dead = false; setRealm('out'); const bad = [];
+    for (const q of ['さあ行くぞ', 'よし、いこう', 'がんばろう', '疲れたね', 'ありがとう', 'ナイス！', 'みんな、気をつけて']) { const res = routeUtterance(q, { auto: true }); if (res.kind !== 'chat') bad.push(q + ' ' + res.kind); }
+    for (const q of ['今日はいい天気', 'その剣はリオのだよ', 'さっきティナが言ってたけど']) { const k = routeUtterance(q, { auto: true }).kind; if (k === 'chuuni' || k.startsWith('party')) bad.push('独り言を拾った ' + q + ' ' + k); }
+    handleUtterance('さあ行くぞ', { auto: true }); const said = $('#vres').textContent; if (!/^(ガルド|ティナ|リオ)「.+」$/.test(said)) bad.push('返事がない ' + said);
+    handleUtterance('今日はいい天気', { auto: true }); if (!/聞き流しました/.test($('#vres').textContent)) bad.push('独り言に返事した');
+    handleUtterance('ガルド、ありがとう', { auto: true }); if (!/^ガルド「/.test($('#vres').textContent)) bad.push('名前を呼んだ仲間が返事しない ' + $('#vres').textContent);
+    if (bad.length) throw new Error(bad.join(' / ')); console.log('VOICE-CHAT ok 「さあ行くぞ」→' + said);
+  }));
+  // 魔法の総点検（circle 2026-09-25「回復全体でガルドが回復しない」「脱出と帰還がきかない」）: 例文ぜんぶを本編で唱えて、MP が減り、狙った相手に効果が出る
+  T('magic-audit', () => withParty((g, t, r) => {
+    const oll = OLL.ok, lv0 = P.lv, rnd0 = Math.random, bad = [], rows = []; OLL.ok = false; G.lab = false; P.lv = 10;
+    const FL = { defUp: 'defUpT', buff: 'buffT', spdUp: 'spdUpT', reflect: 'reflectT', barrier: 'barrierT', protect: 'protectT', light: 'lampT', repel: 'repelT' };
+    const ST = { sleep: e => e.sleepT > 0, confuse: e => e.confT > 0, paralyze: e => e.state === 'stagger', silence: e => e.silT > 0, defDown: e => e.defDownT > G.playT, atkDown: e => e.atkDownT > G.playT, spdDown: e => e.slowT > 0, poison: e => !!e.poison };
+    const reset = realm => { G.mode = 'play'; P.dead = false; setRealm(realm); if (realm === 'cave') { P.pos.copy(CV.P[40]); P.ci = 40; } else P.pos.set(20, groundAt(20, 230), 230);
+      P.yaw = realm === 'cave' ? Math.atan2(-CV.T[40].x, -CV.T[40].z) : 0; P.pitch = 0; P.castT = -1; P.swingT = -1; P.mp = stats().maxmp; P.hp = Math.round(stats().maxhp / 3); for (const k in CHUUNI_CD) delete CHUUNI_CD[k];
+      for (const k of Object.values(FL)) P[k] = 0; for (let i = FX.length - 1; i >= 0; i--) if (FX[i].spirit) FX[i].t = FX[i].life;
+      [g, t, r].forEach((a, i) => { a.alive = true; a.realm = P.realm; a.hp = 1; a.pos.copy(P.pos).add(V3(i * 1.4 - 1.4, 0, 2)); }); updateCamera(0.016); camera.updateMatrixWorld(); };
+    const run = n => { for (let i = 0; i < n; i++) { updatePlayer(0.016, 0.016); updateShots(0.016); updFX(0.016); } };
+    const foe = () => { const d = camFwd(), e = spawnEnemy('shroom', P.pos.x + d.x * 6, P.pos.z + d.z * 6, P.realm); e.state = 'chase'; e.D = { ...e.D, hp: 999, speed: 0 }; e.hp = 999; e.noRespawn = true; return e; };
+    const drop = e => { e.dead = true; e.deadT = 99; scene.remove(e.g); e.shadow.visible = false; };
+    try {
+      for (const it of LAB) {
+        const sp = makeChuuni(it.text), Kt = KATA_BY[sp.kata], cave = sp.kata === 'escape'; reset(cave ? 'cave' : 'out'); const e = foe();
+        if (Kt.cat === '即死') Math.random = () => 0.01;
+        if (sp.kata === 'revive') { g.alive = false; g.hp = 0; }
+        const st = chuuniStats(sp), mp0 = P.mp, hp0 = P.hp, pz = P.pos.clone(); if (!castChuuni(sp)) { bad.push('唱えられない ' + it.text); drop(e); Math.random = rnd0; continue; }
+        const used = mp0 - P.mp; run(420); Math.random = rnd0; const dmg = 999 - e.hp; let ok = used === st.mp, why = used !== st.mp ? `MP ${used}≠${st.mp}` : '';
+        const need = (c, m) => { if (!c) { ok = false; why += ' ' + m; } };
+        if (Kt.cat === '攻撃' || Kt.cat === '吸収') need(dmg > 0 || e.dead, '敵に当たらない');
+        if (Kt.cat === '即死') need(e.dead, '倒れない');
+        if (Kt.cat === '妨害') need(ST[sp.effect] ? ST[sp.effect](e) : dmg > 0, '状態が付かない ' + sp.effect);
+        if (sp.kata === 'drain_hp') need(P.hp > hp0, 'HP が吸えない');
+        if (Kt.cat === '回復') { need(P.hp > hp0, 'ゆうしゃが回復しない'); if (Kt.target === 'party') for (const a of [g, t, r]) need(a.alive && a.hp > 1, a.name + 'が回復しない'); }
+        if (FL[sp.effect]) need(P[FL[sp.effect]] > 0, '効果が付かない ' + sp.effect);
+        if (sp.kata === 'summon') need(FX.some(f => f.spirit), '召喚が出ない');
+        if (sp.kata === 'warp') need(Math.hypot(P.pos.x - 2, P.pos.z - 289) < 1 && P.realm === 'out', '町へ もどらない');
+        if (sp.kata === 'escape') need(P.realm === 'out', 'どうくつから 出ない');
+        if (!ok) bad.push(it.text + ':' + why); rows.push(sp.kata + (Kt.cat === '攻撃' ? '=' + dmg : ''));
+        drop(e);
+      }
+      // 全体回復で ガルドが回復する（HP 1 → 上がる）。たおれている仲間は回復できないと言う
+      reset('out'); const ha = makeChuuni('我らに癒しの加護を'); castChuuni(ha); run(300); if (!(g.hp > 1)) bad.push('全体回復で ガルドが回復しない ' + g.hp);
+      reset('out'); g.alive = false; g.hp = 0; castChuuni(ha); run(300); if (!/ガルドは たおれていて/.test($('#log').textContent)) bad.push('たおれた仲間の案内がない'); g.alive = true; g.hp = 1;
+      // 脱出を外で唱えると MP を使わず「きかない」と返す
+      reset('out'); { const es = makeChuuni('この迷宮から抜け出せ'), mp0 = P.mp; if (castChuuni(es) || P.mp !== mp0 || !/きかない/.test($('#vres').textContent)) bad.push('外の脱出 ' + P.mp + '/' + mp0 + ' ' + $('#vres').textContent); }
+      // 経路: 声（自動・詠唱なし）／Shift+T の入口 → 中二病魔法。Q・E・R に割り当てて唱える → 効く
+      for (const q of ['故郷へ還れ', 'この迷宮から抜け出せ', '我らに癒しの加護を', '灯火よ、闇を照らせ', '魔を退けよ、聖なる風', '出でよ、炎の精霊']) { for (const o of [{ auto: true }, { entry: 'cast' }]) if (routeUtterance(q, o).kind !== 'chuuni') bad.push('経路 ' + JSON.stringify(o) + ' ' + q + '=' + routeUtterance(q, o).kind); }
+      for (const [q, realm, slot, chk] of [['故郷へ還れ', 'cave', 'Q', () => P.realm === 'out' && Math.hypot(P.pos.x - 2, P.pos.z - 289) < 1], ['この迷宮から抜け出せ', 'cave', 'R', () => P.realm === 'out'], ['我らに癒しの加護を', 'out', 'E', () => g.hp > 1 && t.hp > 1 && r.hp > 1]]) {
+        reset(realm); const s2 = makeChuuni(q); learnSpell(s2, slot); castSpell(slot); if (P.castKind !== 'chuuni') bad.push(slot + ' で唱えない'); run(420); if (!chk()) bad.push(slot + ' ' + q + ' 効かない'); forgetSpell(s2.key); }
+      // もとの呪文: いやし・おおいやしは ゆうしゃだけ、ほむらは敵に当たる
+      reset('out'); { const hp0 = P.hp; const mem = PARTY.members.filter(a => a.alive && a.pos && a.pos.distanceTo(P.pos) < 25); for (const a of mem) a.hp = 1; castSpellId('heal2'); run(40); if (!(P.hp > hp0)) bad.push('おおいやし'); if (mem.some(a => !(a.hp > 1))) bad.push('おおいやし 仲間'); }
+      reset('out'); { const e = foe(); castSpellId('fire2'); run(120); if (!(e.hp < 999)) bad.push('おおほむら 当たらない'); drop(e); }
+    } finally { Math.random = rnd0; OLL.ok = oll; P.lv = lv0; P.hp = stats().maxhp; P.mp = stats().maxmp; setRealm('out'); P.pos.set(20, groundAt(20, 230), 230); for (const k of Object.values(FL)) P[k] = 0; G.skyFx = null; }
+    if (bad.length) throw new Error(bad.slice(0, 10).join(' / ') + (bad.length > 10 ? ' ほか' + (bad.length - 10) : ''));
+    console.log('MAGIC-AUDIT ok 例文' + LAB.length + ' ・ ' + rows.join(' '));
+  }));
   T('bugfix-1to5', () => {
     G.mode = 'play'; P.dead = false; setRealm('out'); P.crouch = 0; KEYS.ControlLeft = true; for (let i = 0; i < 30; i++) updatePlayer(0.016, 0.016); KEYS.ControlLeft = false; if (P.crouch > 0.1) throw new Error('ctrl crouches');
     clearSave(); const e = ENEMIES.find(x => x.realm === 'out' && !x.dead && x.type !== 'boss' && !x.practice); killEnemy(e, {}); const sv = loadSave(); if (!sv || sv.gold !== P.gold) throw new Error('kill not saved');
@@ -4665,8 +4755,9 @@ function runTests() {
     G.mode = 'play'; P.dead = false; P.castT = -1; P.swingT = -1; P.mp = 99; for (const k in CHUUNI_CD) delete CHUUNI_CD[k]; BOOK.spells = []; SLOTMAP.Q = SLOTMAP.E = null;
     const sp = makeChuuni('蒼き雷の光線よ、闇を穿て'); castChuuni(sp); for (let i = 0; i < 40; i++) { updatePlayer(0.016, 0.016); updateShots(0.016); updFX(0.016); }
     if (!G.learnOffer || G.learnOffer.sp.key !== sp.key) throw new Error('no offer');
-    openLearn(G.learnOffer.sp); if (G.mode !== 'learn') throw new Error('learn window');
+    G.playT += 60; pressLearn(); if (G.mode !== 'learn') throw new Error('learn window（60 秒後の G）'); // 時間切れなし（circle 2026-09-25）
     learnSpell($('#learn').userData, 'Q'); closeLearn(); G.mode = 'play';
+    pressLearn(); if (G.mode !== 'play' || !/もう おぼえている/.test($('#vres').textContent)) throw new Error('覚えた後の G ' + G.mode + ' ' + $('#vres').textContent);
     if (!SLOTMAP.Q || SLOTMAP.Q.key !== sp.key) throw new Error('not assigned');
     updateHUD(); if (SLOTS[2].nmEl.textContent !== sp.name) throw new Error('hud ' + SLOTS[2].nmEl.textContent);
     P.castT = -1; P.swingT = -1; P.mp = 99; for (const k in CHUUNI_CD) delete CHUUNI_CD[k];
@@ -4681,7 +4772,17 @@ function runTests() {
     assignSlot('Q', { t: 'base', id: 'heal' }); P.castT = -1; castSpell('Q'); if (P.castKind !== 'heal') throw new Error('base back');
     openMenu(); if (!panel.querySelector('.book')) throw new Error('book window'); closePanel();
     assignSlot('R', { t: 'ch', key: sp.key }); updateHUD(); if (SLOTS[7].nmEl.textContent !== sp.name) throw new Error('R hud'); P.castT = -1; P.mp = 99; for (const k in CHUUNI_CD) delete CHUUNI_CD[k]; castSpell('R'); if (P.castKind !== 'chuuni') throw new Error('R slot'); for (let i = 0; i < 40; i++) updatePlayer(0.016, 0.016);
+    { // 呪文書の Q/E/R の光は 各列 ちょうど 1 つ（もとの呪文が 2 つ以上・中二病魔法が 2 つ以上でも）
+      const lv0 = P.lv; P.lv = 10; const sp2 = makeChuuni('紅蓮の炎よ、すべてを焼き尽くせ'); learnSpell(sp2, 'E');
+      const d = document.createElement('div'); d.innerHTML = bookHTML(); P.lv = lv0;
+      for (const s of ['Q', 'E', 'R']) { const n = d.querySelectorAll(`[data-as="${s}"].on`).length; if (n !== 1) throw new Error(`book highlight ${s}=${n}`); }
+      forgetSpell(sp2.key); }
     forgetSpell(sp.key); if (bookFind(sp.key) || SLOTMAP.R) throw new Error('forget');
+    { // G の窓を「やめる」で閉じても 小さな案内が残り、あとで G を押せば また覚えられる
+      const s3 = makeChuuni('凍てつく吹雪よ、あたり一面を覆え'); P.castT = -1; P.swingT = -1; P.mp = 99; for (const k in CHUUNI_CD) delete CHUUNI_CD[k]; castChuuni(s3); for (let i = 0; i < 40; i++) updatePlayer(0.016, 0.016);
+      pressLearn(); if (G.mode !== 'learn') throw new Error('G 窓'); closeLearn(); const h = $('#learnhint');
+      if (!h.classList.contains('on') || !h.classList.contains('small') || !G.learnOffer || G.learnOffer.sp.key !== s3.key) throw new Error('やめた後の案内');
+      G.playT += 120; pressLearn(); if (G.mode !== 'learn') throw new Error('やめた後の G'); learnSpell(s3, null); closeLearn(); G.mode = 'play'; if (!bookFind(s3.key)) throw new Error('覚えない'); forgetSpell(s3.key); }
     console.log('BOOK ' + sp.name + '（' + sp.yomi + '） Lv2威力' + w.power + ' → Lv10威力' + s2.power);
   });
   T('style', () => {
@@ -4817,7 +4918,16 @@ function runTests() {
     const e = spawnEnemy('drop', P.pos.x + 3, P.pos.z, 'out'), exp0 = P.exp, g0 = P.gold; e.hp = 1; chuuniDamage(e, sp, { ...chuuniStats(sp), trial: true }, 1);
     if (!e.dead) bad.push('倒れない'); if (P.exp !== exp0 || P.gold !== g0) bad.push('経験値かお金が入った'); e.deadT = 99; e.noRespawn = true; scene.remove(e.g); e.shadow.visible = false;
     const s0 = localStorage.getItem(SAVEKEY), lv0 = P.lv; G.lab = true; P.lv = MAXLV; save(); G.lab = false; if (localStorage.getItem(SAVEKEY) !== s0) bad.push('ラボで保存した'); P.lv = lv0;
-    GRIM.el.querySelector('.g-sp').click(); // 頁の押下（非同期で撃つ。例外は全体の例外数で見る）
+    // 本編で 頁を押す → 本が閉じて 詠唱の欄に その文が入る → Enter で唱える → 効く（どうくつで 脱出。circle 2026-09-25 本の中で唱えようとして 効かなかった）
+    const ei = LAB.findIndex(x => x.text === 'この迷宮から抜け出せ'); setRealm('cave'); P.pos.copy(CV.P[40]); P.ci = 40; P.castT = -1; P.swingT = -1; P.mp = stats().maxmp; for (const k in CHUUNI_CD) delete CHUUNI_CD[k];
+    openGrim(); const row = GRIM.el.querySelector(`.g-sp[data-i="${ei}"]`); if (!row || !/押すと となえる/.test(row.textContent)) bad.push('押すと となえる の案内がない');
+    row.click(); if (GRIM.open || G.mode !== 'type' || $('#typebox').dataset.entry !== 'cast' || $('#typein').value !== 'この迷宮から抜け出せ') bad.push('詠唱の欄が開かない ' + G.mode + ' ' + $('#typein').value);
+    G.fxLast = null; closeType(true); late.push(['grimoire-chant', () => { // 唱え始めは非同期。ソフト描画の本番ループは遅いので、放つまではここで進める
+      if (P.castKind !== 'chuuni' || !P.castSpec || P.castSpec.kata !== 'escape' || P.castStats.trial) throw new Error('頁から唱えられていない ' + P.castKind + ' ' + (P.castSpec && P.castSpec.kata));
+      if (!P.castDone) { if (P.realm !== 'cave') { setRealm('cave'); P.pos.copy(CV.P[40]); P.ci = 40; } for (let i = 0; i < 250 && P.realm === 'cave'; i++) { updatePlayer(0.016, 0.016); updFX(0.016); } }
+      if (P.realm !== 'out' || !G.fxLast || G.fxLast.sp.kata !== 'escape') throw new Error('頁から唱えて 脱出しない ' + P.realm); }]);
+    // 本を開いたまま 声（自動・詠唱なし）で唱えても 聞き流さない
+    openGrim(); if (routeUtterance('今日はいい天気', { auto: true }).kind !== 'ignore') bad.push('auto filter'); handleUtterance('ぽよぽよぷにぷに、とんでけー', { auto: true }); if (GRIM.open) bad.push('声で唱えても 本が閉じない'); closeGrim();
     if (bad.length) throw new Error(bad.join(' / '));
     console.log('GRIMOIRE ok 開閉5回 DOM ' + n0 + '→' + n1 + ' ・ 頁 ' + GRIM.el.querySelectorAll('.g-sp').length + ' ・ MP ' + P.mp + ' ・ 音 ' + AU.nSpell);
   });
@@ -4828,6 +4938,7 @@ function runTests() {
     const bad = []; if (GFX.lv !== 'low') bad.push('lv ' + GFX.lv); if (bloom.enabled) bad.push('bloom'); if (QS.shadow || sunLight.castShadow) bad.push('shadow'); if (pr !== 1) bad.push('pr ' + pr);
     if (!fpsEl.textContent.includes('画質 低')) bad.push('fps ' + fpsEl.textContent); if (SPARK.max !== PFULL[0] / 2) bad.push('particles'); if (TESTERR.n !== e0) bad.push('例外 ' + (TESTERR.n - e0) + ' ' + TESTERR.last);
     if (bad.length) { ng++; console.error('TEST FAIL gfx-low', bad.join(' / ')); } else { ok++; console.log('GFX-LOW ok 3s ・ ' + fpsEl.textContent); }
+    for (const [nm, fn] of late) T(nm, fn);
     setGfx(set0, true); console.log(`TEST RESULT ok=${ok} ng=${ng}`);
   }, 3000);
 }
@@ -5095,7 +5206,10 @@ function allyHeal(a, full) { const s = allyStats(a); if (full) { a.alive = true;
 // 役割で たちいち: たて役は 主人公の まえ、うしろ役（回復・まほう）は うしろ、アタッカーは よこ
 const ROLE_NAME = { tank: 'たて', front: 'アタッカー', back: 'うしろ・回復' };
 const roleOf = a => (a && CLASSES[a.cls] && CLASSES[a.cls].role) || 'front';
-function formation(k, a) { const f = camFwd(), r = V3(Math.cos(P.yaw), 0, -Math.sin(P.yaw)), sd = k % 2 ? 1 : -1, role = a ? roleOf(a) : null;
+// 声の分担（a.stance: front＝まえ・たて／back＝うしろ／side＝よこ）があれば、職業の役割より先に使う
+const STANCE_ROLE = { front: 'tank', back: 'back', side: 'front' };
+const posRole = a => (a && STANCE_ROLE[a.stance]) || roleOf(a);
+function formation(k, a) { const f = camFwd(), r = V3(Math.cos(P.yaw), 0, -Math.sin(P.yaw)), sd = k % 2 ? 1 : -1, role = a ? posRole(a) : null;
   const o = role === 'tank' ? [sd * 0.8, 2.6] : role === 'back' ? [sd * 1.7, -3.0] : role === 'front' ? [sd * 1.9, 0.2] : [[-1.9, -1.4], [1.9, -1.4], [0, -2.8]][k % 3]; return V3(r.x * o[0] + f.x * o[1], 0, r.z * o[0] + f.z * o[1]); }
 function engaged() { return ENEMIES.filter(e => !e.dead && !e.practice && e.realm === P.realm && e.state !== 'idle' && e.state !== 'sleep' && e.state !== 'show' && Math.hypot(e.pos.x - P.pos.x, e.pos.z - P.pos.z) < 28); }
 function aimedEnemy() {
@@ -5216,7 +5330,7 @@ function updAllies(dt) {
       if (it.k === 'follow' || it.k === 'guard') { const off = formation(idx, a); goal = V3(P.pos.x + off.x, 0, P.pos.z + off.z); if (it.k === 'guard') { const near = engaged().filter(e => Math.hypot(e.pos.x - P.pos.x, e.pos.z - P.pos.z) < 4); if (near.length) { a.intent = { k: 'attack', t: near[0] }; } } }
       else if (it.k === 'retreat' || it.k === 'gather') { const f = camFwd(); goal = V3(P.pos.x - f.x * (it.k === 'retreat' ? 4 : 1.5), 0, P.pos.z - f.z * (it.k === 'retreat' ? 4 : 1.5)); speed *= 1.25; }
       else if (it.k === 'attack' && it.t && !it.t.dead) {
-        const role = roleOf(a), ordered = !!a.temp;
+        const role = posRole(a), ordered = !!a.temp;
         if (role === 'tank' && !ordered) { const pe = nearestEnemy(P.pos, engaged()); if (pe) it.t = pe; } // たて役は 主人公に いちばん ちかい てきを おさえる
         const e = it.t, d = Math.hypot(e.pos.x - a.pos.x, e.pos.z - a.pos.z), reach = CLASSES[a.cls].reach + e.D.r;
         faceP = e.pos;
@@ -5548,6 +5662,8 @@ async function getChuuni(text) {
 function castChuuni(sp, o = {}) {
   if (P.dead || P.castT >= 0 || P.swingT >= 0) return false;
   ensureKata(sp); const st = chuuniStats(sp), trial = !!o.trial || G.lab;
+  // 脱出は どうくつの 中だけ。外では MP を使わずに「ここでは きかない」と返す（外で唱えて 何も起きず MP だけ減っていた）
+  if (!trial && sp.kata === 'escape' && P.realm !== 'cave') { G.lastChuuni = sp; offerLearn(sp); voiceLine(`「${sp.name}」は どうくつの 中でしか きかない`, 'warn'); log('ここでは 脱出の 魔法は きかない（どうくつの 中で となえよう）', 'warn'); sfx('no', null, { ui: true }); return false; }
   if (trial) st.trial = true;
   else {
     if ((CHUUNI_CD[sp.key] || 0) > G.playT) { voiceLine(`「${sp.name}」は まだ つかえない（あと${Math.ceil(CHUUNI_CD[sp.key] - G.playT)}びょう）`); sfx('no', null, { ui: true }); return false; }
@@ -5555,7 +5671,7 @@ function castChuuni(sp, o = {}) {
     P.mp -= st.mp; CHUUNI_CD[sp.key] = G.playT + st.cd;
   }
   P.castT = 0; P.castKind = 'chuuni'; P.castDone = false; P.castDur = st.cast; P.castSpec = sp; P.castStats = st;
-  spellCard(sp, st); sfxSpell(sp, 'rise', null, st); offerLearn(sp);
+  spellCard(sp, st); sfxSpell(sp, 'rise', null, st); G.lastChuuni = sp; offerLearn(sp);
   return true;
 }
 const EFF_JP = { burn: '燃焼', freeze: '凍結', paralyze: '麻痺', drain: '吸収', buff: '攻撃↑', heal: '回復', sleep: '眠り', confuse: '混乱', poison: '毒', defDown: '守備↓', atkDown: '攻撃↓', spdDown: '素早さ↓', reflect: '反射', barrier: '障壁', death: '即死', silence: '封印', defUp: '守備↑', spdUp: '素早さ↑', protect: '身代わり', revive: '蘇生', cure: '状態回復', drainMp: 'MP吸収', warp: '帰還', escape: '脱出', light: '明かり', repel: '敵避け', summon: '召喚' };
@@ -5878,7 +5994,7 @@ function fxCtx(sp, st) {
   let tg = [], pt; const T = Kt.target;
   if (T === 'self' || T === 'party') {
     tg = [{ pos: P.pos, me: true, top: 1.7 }];
-    if (T === 'party') for (const a of PARTY.members) if ((a.alive || sp.effect === 'revive') && a.pos) tg.push({ pos: a.pos, a, top: 1.4 });
+    if (T === 'party') for (const a of PARTY.members) { if ((a.alive || sp.effect === 'revive') && a.pos) tg.push({ pos: a.pos, a, top: 1.4 }); else if (!a.alive) (ctx.downs = ctx.downs || []).push(a.name); }
     pt = P.pos.clone();
   } else {
     let main = aimedEnemy(); if (main && (main.dead || !foes.includes(main))) main = null;
@@ -5944,6 +6060,8 @@ function fxGlobal(ctx) {
   // 試し撃ちの帰還・脱出は動かさず、光に包まれて画面が白く明ける（本編で唱えると動くことは魔導書の頁に書く）
   if (st.trial && (ef === 'warp' || ef === 'escape')) { flashScreen(ef === 'warp' ? '#fff6dc' : '#eef8ff', 0.7, 1.3); G.shake = 0; return; }
   if (st.trial && !G.lab) return;
+  // 全体への回復: だれに効いたかを ログに出す。たおれている仲間には効かない（蘇生の魔法で おこす）ことも言う
+  if ((ef === 'heal' || ef === 'cure') && ctx.K.target === 'party') { const who = ['ゆうしゃ', ...ctx.tgts.filter(t => t.a).map(t => t.a.name)]; log(`${who.join('・')}の HPが かいふくした！`); if (ctx.downs && ctx.downs.length) log(`${ctx.downs.join('・')}は たおれていて 回復できない（蘇生の 魔法で おこせる）`, 'warn'); }
   if (ef === 'reflect') { P.reflectT = D; log('ゆうしゃの まえに ひかりの かがみが あらわれた！'); }
   if (ef === 'barrier') { P.barrierT = D; log('まほうの かべが パーティを つつんだ！'); }
   if (ef === 'protect') { P.protectT = D; log('しゅごの きしが ゆうしゃを まもっている！'); }
@@ -6605,7 +6723,7 @@ async function labCast(i) {
 /* ---------- 禁断の魔導書（L で開閉・メニュー・開始画面の「魔法を試す」）。ゲームは止めない。DOM は最初の 1 回だけ作り、以後は印を付け替えるだけ ---------- */
 const GRIM = { el: null, open: false, t: 0 };
 const GRIM_CAT = { '例文': 'ことばの魔法', '辞書外': 'でたらめな詠唱' };
-const GRIM_NOTE = { warp: '本編で唱えると 町へ もどる', escape: 'どうくつの中で唱えると 外へ ぬける' };
+const GRIM_NOTE = { warp: '唱えると 町へ もどる', escape: 'どうくつの中で唱えると 外へ ぬける' };
 function grimChain(cls, x0, y0, x1, y1) {
   const n = 17, a = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI; let s = '';
   for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n, flat = i % 2 === 0;
@@ -6615,13 +6733,14 @@ function grimChain(cls, x0, y0, x1, y1) {
 function grimBuild() {
   const el = document.createElement('div'); el.id = 'grim'; el.hidden = true;
   const cats = [...new Set(LAB.map(x => x.cat))], col = it => { const sp = makeChuuni(it.text); return sp.colors[0]; };
-  el.innerHTML = `<div class="win g-book"><div class="g-t">禁断の魔導書</div><div class="g-s">頁に ふれると ためしうち<br>MPは へらない・けいけんちは えられない</div><div class="g-list">` +
-    cats.map(c => `<h4>${GRIM_CAT[c] || c}</h4>` + LAB.map((x, i) => x.cat !== c ? '' : `<button class="g-sp" type="button" data-i="${i}" style="--c:${col(x)}"><i class="g-dot"></i><span>${x.label !== x.text ? `<b class="g-nm" style="font-weight:400">${x.label}</b>` : ''}<span class="g-tx">「${x.text}」</span>${GRIM_NOTE[x.kata] ? `<span class="g-note">${GRIM_NOTE[x.kata]}</span>` : ''}</span></button>`).join('')).join('') +
+  // 本編では 頁を押すと 本を閉じて 詠唱の欄（Shift+T と同じ）に その文が入る。Enter で唱える（本の中で唱えようとして 効かなかった。circle 2026-09-25）。魔法を試す場（#lab）は ためしうち
+  el.innerHTML = `<div class="win g-book"><div class="g-t">禁断の魔導書</div><div class="g-s">${G.lab ? '頁に ふれると ためしうち<br>MPは へらない・けいけんちは えられない' : '頁を 押すと 詠唱の 欄に 入る<br>Enter で となえる（MPを つかう）'}</div><div class="g-list">` +
+    cats.map(c => `<h4>${GRIM_CAT[c] || c}</h4>` + LAB.map((x, i) => x.cat !== c ? '' : `<button class="g-sp" type="button" data-i="${i}" style="--c:${col(x)}"><i class="g-dot"></i><span>${x.label !== x.text ? `<b class="g-nm" style="font-weight:400">${x.label}</b>` : ''}<span class="g-tx">「${x.text}」</span>${GRIM_NOTE[x.kata] ? `<span class="g-note">${GRIM_NOTE[x.kata]}</span>` : ''}<span class="g-go">${G.lab ? '押すと ためしうち' : '押すと となえる'}</span></span></button>`).join('')).join('') +
     `</div><div class="g-foot"><span><kbd>L</kbd>とじる　<kbd>Shift</kbd>+<kbd>T</kbd>詠唱</span>${G.lab ? '<button class="btn sm" type="button" id="g-title">タイトルへ</button>' : ''}</div></div>` +
     `<div class="g-cover"><div class="g-ct">禁断の魔導書</div><svg viewBox="0 0 340 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#d8c088" opacity=".32"><circle cx="170" cy="228" r="92" stroke-width="2.5"/><circle cx="170" cy="228" r="78"/><circle cx="170" cy="228" r="34"/><path d="M170 150 237.5 267 102.5 267Z M170 306 102.5 189 237.5 189Z"/></g>${grimChain('a', -20, 60, 360, 420)}${grimChain('b', 360, 60, -20, 420)}` +
     `<g class="g-lock"><path d="M156 212v-14a14 14 0 0 1 28 0v14" fill="none" stroke="#1a1016" stroke-width="9"/><path d="M156 212v-14a14 14 0 0 1 28 0v14" fill="none" stroke="#d8c088" stroke-width="5"/><rect x="146" y="208" width="48" height="40" rx="6" fill="#b89548" stroke="#1a1016" stroke-width="3"/><circle cx="170" cy="224" r="5" fill="#2a1030"/><rect x="167.5" y="226" width="5" height="12" rx="2" fill="#2a1030"/></g></svg></div>`;
   document.body.append(el);
-  el.addEventListener('click', ev => { const b = ev.target.closest('.g-sp'); if (b) { labCast(+b.dataset.i); b.blur(); return; } if (ev.target.id === 'g-title') { history.replaceState(null, '', location.pathname + location.search); location.reload(); } });
+  el.addEventListener('click', ev => { const b = ev.target.closest('.g-sp'); if (b) { if (G.lab) labCast(+b.dataset.i); else grimChant(+b.dataset.i); b.blur(); return; } if (ev.target.id === 'g-title') { history.replaceState(null, '', location.pathname + location.search); location.reload(); } });
   GRIM.el = el; return el;
 }
 function grimSnd(open) {
@@ -6641,6 +6760,7 @@ function closeGrim() {
   clearTimeout(GRIM.t); GRIM.t = setTimeout(() => { if (!GRIM.open) el.hidden = true; }, 520);
 }
 function toggleGrim() { if (GRIM.open) closeGrim(); else openGrim(); }
+function grimChant(i) { const it = LAB[i]; if (!it || G.mode !== 'play') return; closeGrim(); openType('cast'); $('#typein').value = it.text; }
 function setupLab(n) {
   G.lab = true; $('#title').hidden = true; $('#hud').hidden = false; G.mode = 'play'; LOCK.drag = true; G.demoInv = true; for (const h of HINTS) hintDone(h.id);
   P.lv = MAXLV; P.exp = LV[MAXLV].exp; const s = stats(); P.hp = s.maxhp; P.mp = s.maxmp; buildSword(); setRealm('out'); G.hour = 18.7;
@@ -6686,12 +6806,87 @@ function voiceStart() {
 function voiceStop() { VO.want = false; if (VO.rec) { try { VO.rec.stop(); } catch (e) {} } voiceUI(); }
 // 入口: 'order'＝指示（T・V）／'cast'＝詠唱（Shift+T・X）。詠唱の帯は魔法の色
 function openType(entry = 'order') {
-  if (G.mode !== 'play') return; G.mode = 'type'; const b = $('#typebox'); b.hidden = false; b.dataset.entry = entry; b.classList.toggle('cast', entry === 'cast');
+  if (G.mode !== 'play') return; if (GRIM.open) closeGrim(); G.mode = 'type'; const b = $('#typebox'); b.hidden = false; b.dataset.entry = entry; b.classList.toggle('cast', entry === 'cast');
   $('#typelab').textContent = entry === 'cast' ? '詠唱' : 'しじ';
   const i = $('#typein'); i.placeholder = entry === 'cast' ? 'れい：地獄の業火よ、敵を焼き尽くせ／癒しの光よ' : 'れい：ティナ、こいつを攻撃しろ！／全員、慎重に戦え！／いやし'; i.value = ''; setTimeout(() => i.focus(), 0);
 }
 function closeType(submit) { const b = $('#typebox'), i = $('#typein'); const v = i.value; b.hidden = true; i.blur(); G.mode = 'play'; if (submit && v.trim()) handleUtterance(v, { typed: true, entry: b.dataset.entry || 'order' }); canvas.focus(); }
 function namesOf(list) { return list.length === PARTY.members.length && list.length > 1 ? '全員' : list.map(a => a.name).join('と'); }
+/* 分担の指示: 役割（タンク・回復役・後衛…）か名前ごとに、立ち位置と動きを受け取る。一文に いくつあってもよい
+   （「タンクの前で回復は後ろ」が聞き流された。circle 2026-09-25）。役割の語は後ろに は・が・も・の・、 が付くときだけ主語とみなす */
+const ROLE_W = [['tank', /タンク|盾役|たて役|壁役|かべ役|前衛|ぜんえい|戦士|せんし/g], ['heal', /ヒーラー|回復役|回復係|回復|かいふく|僧侶|そうりょ/g],
+  ['mage', /魔法使い|まほうつかい|魔法役|魔術師|魔導士/g], ['back', /後衛|こうえい/g], ['attacker', /アタッカー|攻撃役|こうげき役|盗賊|とうぞく/g]];
+const ROLE_IMPLY = { tank: { pos: 'front' }, heal: { pos: 'back', act: 'heal' }, mage: { pos: 'back', act: 'cast' }, back: { pos: 'back' }, attacker: { pos: 'side', act: 'attack' } };
+const ROLE_JP = { tank: 'タンク', heal: '回復役', mage: '魔法使い', back: '後衛', attacker: 'アタッカー' };
+function segOrder(t) {
+  const pos = /後ろ|うしろ|後方|後衛|こうえい|遠く|とおく/.test(t) ? 'back' : /前(?!衛)|まえ|先頭|引きつけ|ひきつけ|引き付け|おさえ|抑え|盾に|たてに/.test(t) ? 'front' : /横|よこ|側面|脇|わき/.test(t) ? 'side' : null;
+  const act = /回復|かいふく|癒|いやし|ヒール|治療/.test(t) ? 'heal' : /(魔法|まほう|呪文|じゅもん)/.test(t) && !/使うな|つかうな|禁止|きんし|使わ|つかわ/.test(t) ? 'cast'
+    : /守れ|まもれ|守って|まもって|護衛|ごえい|かばえ|かばって/.test(t) ? 'guard' : /攻撃|こうげき|攻め|せめ|殴|なぐ|叩|たた[けい]|倒せ|たおせ|戦え|たたかえ/.test(t) ? 'attack' : null;
+  return { pos, act };
+}
+function roleAllies(w, ms) {
+  const sp = (a, s) => CLASSES[a.cls].spells.includes(s), R = a => roleOf(a);
+  let l = w === 'tank' ? ms.filter(a => R(a) === 'tank') : w === 'heal' ? ms.filter(a => sp(a, 'heal')) : w === 'mage' ? ms.filter(a => a.cls === 'mage') : w === 'back' ? ms.filter(a => R(a) === 'back') : ms.filter(a => R(a) === 'front');
+  if (!l.length) l = w === 'tank' ? ms.filter(a => R(a) !== 'back').sort((p, q) => CLASSES[q.cls].hp * CLASSES[q.cls].def - CLASSES[p.cls].hp * CLASSES[p.cls].def).slice(0, 1)
+    : w === 'heal' || w === 'back' ? ms.filter(a => R(a) === 'back' || sp(a, 'heal')) : w === 'mage' ? ms.filter(a => sp(a, 'fire') || sp(a, 'spore')) : ms.filter(a => R(a) !== 'back' && R(a) !== 'tank');
+  return l;
+}
+function parseAssign(raw, o = {}) {
+  const s = String(raw || '').normalize('NFKC'), ms = PARTY.members, subj = [];
+  for (const [w, re] of ROLE_W) { re.lastIndex = 0; let m; while ((m = re.exec(s))) { if ((/^(回復|かいふく)$/.test(m[0]) ? /^[はがも]/ : /^[はがもの、,]/).test(s.slice(m.index + m[0].length))) subj.push({ i: m.index, len: m[0].length, role: w }); } }
+  for (const a of ms) { let i = s.indexOf(a.name); while (i >= 0) { if (/^[はがも、,]/.test(s.slice(i + a.name.length))) subj.push({ i, len: a.name.length, a }); i = s.indexOf(a.name, i + 1); } }
+  const roles = subj.filter(x => x.role), names = new Set(subj.filter(x => x.a).map(x => x.a));
+  if (!roles.length && names.size < 2) return null;
+  subj.sort((p, q) => p.i - q.i || q.len - p.len);
+  const segs = []; for (const x of subj) if (!segs.length || x.i >= segs[segs.length - 1].i + segs[segs.length - 1].len) segs.push(x); // 重なり（「回復役」の中の「回復」）は長い方
+  if (o.auto && !/^(さあ|よし|じゃあ|では|ほら|みんな|皆|全員|[、,\s])*$/.test(s.slice(0, segs[0].i))) return null; // 自動のときは 文の頭が主語のときだけ（途中に名前が出る雑談を命令にしない）
+  const byA = new Map(), miss = [];
+  segs.forEach((x, j) => {
+    const t = s.slice(x.i + x.len, j + 1 < segs.length ? segs[j + 1].i : s.length), g = segOrder(t), imp = x.role ? ROLE_IMPLY[x.role] : {};
+    const pos = g.pos || imp.pos || null, act = g.act || (g.pos ? null : imp.act) || (x.role === 'heal' ? 'heal' : null);
+    if (!pos && !act) return;
+    const tg = x.a ? [x.a] : roleAllies(x.role, ms); if (!tg.length) { miss.push(ROLE_JP[x.role]); return; }
+    for (const a of tg) { const cur = byA.get(a); if (cur && cur.byName && !x.a) continue; byA.set(a, { a, pos, act, role: x.role || null, byName: !!x.a }); }
+  });
+  if (!byA.size && !miss.length) return null;
+  return { list: [...byA.values()], miss };
+}
+// 自動で聞いているとき「詠唱」なしで唱える文: 効果・属性・形の語があって、命令・呼びかけの形で終わる（4 字以上）。「今日はいい天気」は唱えない
+function chantLike(raw) {
+  const s = String(raw || '').normalize('NFKC').trim(), t = normT(s); if (t.length < 4) return false;
+  const word = KATA_RULES.some(([re]) => re.test(t)) || ELEM_BASE.some(k => ELEM[k].kw.test(t)) || Object.values(SHAPE).some(x => x.kw.test(t));
+  // 「〜だよ」「〜のよ」のような話しことばの よ は呼びかけにしない（「その剣はリオのだよ」を唱えない）。呼びかけの よ は 漢字・カタカナの後ろ（「癒しの光よ」）
+  return word && (/(え|け|せ|て|へ|め|れ|ろ|げ|ぜ|べ|ぺ|を|たまえ|給え)[!！。…\s]*$/.test(s) || /([一-鿿ァ-ヶ]|[えけせてでめれ])よ([!！。…、,\s]|$)/.test(s));
+}
+// 仲間に向けた掛け声・雑談（返事をする）。迷う文は返す側に倒す（呼びかけの語尾）
+const CHAT_W = [['go', /行くぞ|いくぞ|行こう|いこう|行こっ|進も|すすも|進むぞ|すすむぞ|ついて(こい|来い|きて)|付いて(こい|来い|きて)|出発|しゅっぱつ|レッツゴー|^(さあ|よし|よっしゃ|おし)$/],
+  ['cheer', /頑張|がんば|ファイト|気合|きあい|負けるな|まけるな|油断|ゆだん|気をつけ|きをつけ|用心/], ['praise', /ナイス|いいぞ|すごい|さすが|やった|よくやった|えらい|上手|うまい|最高|さいこう|かっこいい/],
+  ['thanks', /ありがと|助かった|たすかった|サンキュー|感謝/], ['tired', /疲れ|つかれ|休も|やすも|休憩|きゅうけい|眠い|ねむい|お腹|おなか|腹減|はらへ/],
+  ['fear', /怖|こわ|やば|危な|あぶな|強そう|つよそう|まずい|ピンチ/], ['greet', /おはよ|こんにち|こんばん|よろしく|ただいま|おつかれ|お疲れ/]];
+function chatKind(raw) {
+  const s = String(raw || '').normalize('NFKC').trim().replace(/[!！?？。…\s]+$/, ''); if (!s) return null;
+  for (const [k, re] of CHAT_W) if (re.test(s)) return k;
+  return /(ぞ|ぜ|ね|よな|かな|だろ|でしょ|よう|ろう|しよ|みんな|皆)$/.test(s) || /^(みんな|皆|ねえ|なあ|おい)/.test(s) ? 'misc' : null;
+}
+// 仲間の返事（口調: せんし＝あらい／まほうつかい＝やわらか／とうぞく＝そっけない。まものは鳴き声）
+const TONE = { warrior: 0, mage: 1, thief: 2 }, MON_VOICE = { drop: 'ぷるるっ！', bat: 'キキッ！', shroom: 'もこもこっ', skel: 'カタカタッ！' };
+const CHAT_LINE = { go: ['おう、いこうぜ！', 'うん、いこう！', '……いこう'], cheer: ['おう、まかせとけ！', 'うん、がんばろうね', 'わかってる'], praise: ['へへっ、だろ？', 'えへへ、ありがとう', '……どうも'],
+  thanks: ['いいってことよ', 'どういたしまして', '……べつに'], tired: ['まだまだ いけるぜ！', 'すこし やすもうか？', '町で やすめば いい'], fear: ['おれが ついてる！', 'だいじょうぶ、いっしょだよ', '……気を ぬかないで'],
+  greet: ['おう！', 'よろしくね', '……ああ'], misc: ['おう、なんだ？', 'うん、きいてるよ', '……なに？'] };
+const POS_LINE = { front: ['まえは まかせろ！', 'まえに でるね', 'まえに でる'], back: ['うしろに さがるぜ', 'うしろに いるね', 'うしろに いる'], side: ['よこから いくぜ！', 'よこに まわるね', 'よこから いく'] };
+const ACT_LINE = { heal: ['回復は まかせろ', '回復は まかせて', '回復する'], cast: ['まほうで いくぜ', 'まほうで いくね', 'まほうを つかう'], attack: ['たたきのめす！', 'こうげきするね', 'しとめる'], guard: ['まもってやる', 'まもるね', 'まもる'] };
+const POS_JP = { front: 'まえ', back: 'うしろ', side: 'よこ' }, ACT_JP = { heal: '回復', cast: 'まほう', attack: '攻撃', guard: 'まもる' };
+const allyLine = (a, pick) => a.human && TONE[a.cls] !== undefined ? pick[TONE[a.cls]] : MON_VOICE[a.cls] || '（うなずいた）';
+function applyAssign(list) {
+  for (const x of list) {
+    const a = x.a; if (x.pos) a.stance = x.pos; a.temp = null; a.intent = null;
+    if (x.act === 'heal' && CLASSES[a.cls].spells.includes('heal')) a.tactic = 'heal';
+    else if (x.act === 'cast' && CLASSES[a.cls].spells.some(s => s !== 'heal')) { const c = textToRules('魔法をどんどん使え'); a.tactic = 'free'; a.freeText = '魔法をどんどん使え'; a.rules = c.rules; a.understood = c.understood; }
+    else if (x.act === 'attack') a.tactic = 'attack';
+    else if (x.act === 'guard') { const c = textToRules('ゆうしゃを守れ'); a.tactic = 'free'; a.freeText = 'ゆうしゃを守れ'; a.rules = c.rules; a.understood = c.understood; }
+  }
+  save(); updPartyHUD(true);
+}
 // o.entry: 'order'（指示の入口）／'cast'（詠唱の入口）／なし（自動聞き取りなど。従来どおり全部を判定）
 function routeUtterance(raw, o = {}) {
   const n = normT(raw), k = K(raw);
@@ -6702,7 +6897,8 @@ function routeUtterance(raw, o = {}) {
     if (addr && /攻撃|コウゲキ|下ガ|サガ|逃ゲ|ニゲ|集マ|アツマ|来イ|コイ|戻レ|モドレ|守|マモ|狙エ|ネラエ|戦エ|タタカエ|シロ|シテ|ヤレ|作戦|サクセン|慎重|シンチョウ|ガンガン|イツモ/.test(k)) { res.hint = 'order'; return res; }
   }
   const body = chant ? n.replace(/^(詠唱|えいしょう|エイショウ)/, '') : n;
-  const all = /^(全員|ゼンイン|ミンナ|皆|全体|パーティ)/.test(k) || /(全員|ミンナ)(、|,|は|で|！)?/.test(k.slice(0, 5));
+  if (o.entry !== 'cast' && !chant) { const asg = parseAssign(raw, o); if (asg) { res.kind = 'party-roles'; res.assign = asg.list; res.miss = asg.miss; return res; } }
+  const all =/^(全員|ゼンイン|ミンナ|皆|全体|パーティ)/.test(k) || /(全員|ミンナ)(、|,|は|で|！)?/.test(k.slice(0, 5));
   let byName = PARTY.members.filter(a => k.includes(K(a.name)) || (a.alias && k.toLowerCase().includes(a.alias)));
   if (o.auto && !byName.some(a => k.startsWith(K(a.name)) || (a.alias && k.toLowerCase().startsWith(a.alias)))) byName = [];
   if (o.entry !== 'cast' && (all || byName.length)) {
@@ -6712,6 +6908,8 @@ function routeUtterance(raw, o = {}) {
     res.kind = 'party-temp';
     res.cmd = /下が|さが|逃げ|にげ|退|引け|ひけ/.test(n) ? 'retreat' : /集ま|あつま|来い|こい|戻れ|もどれ/.test(n) ? 'gather' : /回復|かいふく|癒|治|いや[しせ]/.test(n) ? 'heal' : /守|まも/.test(n) ? 'guard' : 'attack';
     const ty = enemyTypeIn(n);
+    // 攻撃の語も敵の名前も無い 呼びかけ（「みんな、気をつけて」「ガルド、ありがとう」）は 攻撃にしない。仲間が返事する
+    if (res.cmd === 'attack' && !ty && !/攻撃|こうげき|倒せ|たおせ|やれ|やっつけ|狙|ねら|行け|いけ|かかれ|殴|なぐ|叩|たた[けか]|斬|切|戦|こいつ|あいつ|そいつ|それ|これ|あれ|コイツ|アイツ|ソイツ/.test(n)) { const c = chatKind(raw); if (c) { res.kind = 'chat'; res.chat = c; return res; } }
     res.target = /こいつ|あいつ|そいつ|それ|これ|あれ|コイツ|アイツ|ソイツ/.test(n) ? 'aimed' : ty ? 'type:' + ty : 'aimed';
     res.who = /俺|おれ|僕|ぼく|私|わたし|主人公|勇者|ゆうしゃ/.test(n) ? 'player' : 'lowest';
     return res;
@@ -6723,9 +6921,15 @@ function routeUtterance(raw, o = {}) {
   const spells = [['オオイヤシ', 'heal2'], ['オオホムラ', 'fire2'], ['イヤシ', 'heal'], ['ホムラ', 'fire']];
   const hit = spells.find(([w]) => (o.auto ? k.startsWith(w) : k.includes(w)));
   if (hit && named) { res.kind = 'spell'; res.spell = hit[1]; return res; }
-  if (o.auto && VO.chant && !chant) { res.kind = 'ignore'; return res; }
+  // 自動で聞いているとき: 呪文らしい文（効果の語＋命令の形）は「詠唱」なしでも唱える。仲間への掛け声・雑談には仲間が返事する。どちらでもない独り言だけ聞き流す
+  // （「故郷へ還れ」「さあ行くぞ」が聞き流された。circle 2026-09-25）
+  if (o.auto && VO.chant && !chant) {
+    if (chantLike(raw)) { res.kind = 'chuuni'; res.text = raw; return res; }
+    const c = chatKind(raw); if (c) { res.kind = 'chat'; res.chat = c; return res; }
+    res.kind = 'ignore'; return res;
+  }
   if (body.length < 2) { res.kind = 'none'; return res; }
-  if (o.entry === 'order' && !/^(詠唱|エイショウ)/.test(k)) { res.hint = 'cast'; return res; } // 指示の入口では中二病魔法にしない（詠唱は X ／ Shift+T）
+  if (o.entry === 'order' && !/^(詠唱|エイショウ)/.test(k)) { const c = chatKind(raw); if (c) { res.kind = 'chat'; res.chat = c; return res; } res.hint = 'cast'; return res; } // 指示の入口では中二病魔法にしない（詠唱は X ／ Shift+T）
   res.kind = 'chuuni'; res.text = chant ? raw.replace(/^\s*(詠唱|えいしょう)[、,\s]*/, '') : raw; return res;
 }
 const learned = k => Object.entries(LEARN).some(([lv, id]) => P.lv >= +lv && id === k);
@@ -6737,7 +6941,24 @@ function castSpellId(k) {
 }
 async function handleUtterance(text, o = {}) {
   if (G.mode !== 'play' || P.dead) return;
-  const r = routeUtterance(text, o);
+  let r = routeUtterance(text, o);
+  // 魔導書を開いたまま声で唱えたら、聞き流さずに詠唱として受け取り、本を閉じてから唱える
+  if (GRIM.open && o.entry !== 'order' && ['ignore', 'none', 'chat'].includes(r.kind)) { const r2 = routeUtterance(text, { ...o, auto: false, entry: 'cast' }); if (r2.kind === 'chuuni') r = r2; }
+  if (GRIM.open && ['chuuni', 'bookspell', 'spell'].includes(r.kind)) closeGrim();
+  if (r.kind === 'party-roles') {
+    applyAssign(r.assign); const lines = r.assign.map(x => `${x.a.name}→${[x.pos && POS_JP[x.pos], x.act && ACT_JP[x.act]].filter(Boolean).join('で ')}`);
+    for (const x of r.assign) log(`${x.a.name}「${allyLine(x.a, x.act ? ACT_LINE[x.act] : POS_LINE[x.pos])}」`);
+    for (const m of r.miss) log(`${m}は パーティに いない`, 'warn');
+    voiceLine(lines.join(' ／ ') + (r.miss.length ? `（${r.miss.join('・')}は いない）` : ''), lines.length ? 'ok' : 'faint');
+    const el = $('#rules'); el.innerHTML = `<h3>分担を こう理解した</h3>` + r.assign.map(x => `<div>・${x.a.name}：${x.pos ? POS_JP[x.pos] + 'に いる' : ''}${x.pos && x.act ? '・' : ''}${x.act ? ACT_JP[x.act] + 'を する' : ''}</div>`).join('') + r.miss.map(m => `<div>・${m}は いない</div>`).join('');
+    el.classList.add('on'); clearTimeout(showUnderstood.t); showUnderstood.t = setTimeout(() => el.classList.remove('on'), 7000);
+    if (lines.length) sfx('ok', null, { ui: true }); return;
+  }
+  if (r.kind === 'chat') {
+    const live = PARTY.members.filter(a => a.alive && a.realm === P.realm); if (!live.length) { voiceLine('（聞き流しました）「' + text + '」', 'faint'); return; }
+    const named = (r.to || []).filter(a => live.includes(a)), a = !r.toAll && named.length ? named[0] : live[Math.floor(Math.random() * live.length)], line = allyLine(a, CHAT_LINE[r.chat] || CHAT_LINE.misc);
+    voiceLine(`${a.name}「${line}」`, 'ok'); log(`${a.name}「${line}」`); return;
+  }
   if (r.kind === 'ignore') { voiceLine('（聞き流しました）「' + text + '」', 'faint'); return; }
   if (r.kind === 'none') { voiceLine(r.hint === 'cast' ? '（指示として わからなかった。魔法の詠唱は X か Shift+T）「' + text + '」' : r.hint === 'order' ? '（詠唱では 仲間に命令できない。指示は V か T）「' + text + '」' : '（わからなかった）「' + text + '」', 'faint'); return; }
   if (r.kind === 'party-temp') {
@@ -6752,7 +6973,7 @@ async function handleUtterance(text, o = {}) {
     if (OLL.ok) { voiceLine(sum + '（AI で見なおし中…）', 'ok'); try { const ai = await aiRules(text); applyPolicy(r.to, text, ai); showUnderstood(namesOf(r.to), ai); voiceLine(`${namesOf(r.to)}の作戦→${ai.label}：${ai.understood.slice(0, 3).join('、')}（AI）`, 'ok'); } catch (e) {} }
     return;
   }
-  if (r.kind === 'learn') { if (G.learnOffer && G.playT < G.learnOffer.until) openLearn(G.learnOffer.sp); else voiceLine('おぼえられる 魔法が ない（中二病魔法を となえた すぐ あとに）', 'faint'); return; }
+  if (r.kind === 'learn') { pressLearn(); return; }
   if (r.kind === 'bookspell') { if (castChuuni(r.spec)) voiceLine(`ゆうしゃ→「${r.spec.name}」（じゅもんのしょ）`, 'ok'); return; }
   if (r.kind === 'spell') { if (castSpellId(r.spell)) voiceLine(`ゆうしゃ→${SPELL[r.spell].name}（呪文）`, 'ok'); return; }
   if (r.kind === 'chuuni') {
@@ -6771,9 +6992,9 @@ function showUnderstood(who, conv) {
 let partyHudKey = '';
 function updPartyHUD(force) {
   const box = $('#party');
-  const key = PARTY.members.map(a => [a.name, a.lv, a.hp, a.mp, a.alive, a.tactic, a.temp ? a.temp.k : ''].join(',')).join('|');
+  const key = PARTY.members.map(a => [a.name, a.lv, a.hp, a.mp, a.alive, a.tactic, a.temp ? a.temp.k : '', a.stance || ''].join(',')).join('|');
   if (!force && key === partyHudKey) return; partyHudKey = key;
-  box.innerHTML = PARTY.members.map(a => { const s = allyStats(a); return `<div class="win pm${a.alive ? '' : ' ko'}"><div class="pn">${a.name}<small>Lv${a.lv}</small><em>${a.temp ? { attack: '攻撃!', retreat: '後退!', gather: '集合!', heal: '回復!', guard: '護衛!' }[a.temp.k] : tacticOf(a.tactic).short}</em></div>
+  box.innerHTML = PARTY.members.map(a => { const s = allyStats(a); return `<div class="win pm${a.alive ? '' : ' ko'}"><div class="pn">${a.name}<small>Lv${a.lv}</small><em>${a.temp ? { attack: '攻撃!', retreat: '後退!', gather: '集合!', heal: '回復!', guard: '護衛!' }[a.temp.k] : tacticOf(a.tactic).short + (a.stance ? '・' + POS_JP[a.stance] : '')}</em></div>
     <div class="pr"><b>H</b><span>${a.alive ? a.hp : 'たおれた'}</span></div><i class="bar"><u style="width:${100 * a.hp / s.maxhp}%"></u></i>${s.maxmp ? `<div class="pr"><b>M</b><span>${a.mp}</span></div>` : ''}</div>`; }).join('');
 }
 function updAllyTags() {
@@ -6847,11 +7068,19 @@ const spellKind = sp => (KATA_BY[sp.kata] || {}).label || SHAPE_NAME[sp.shape]; 
 const SHAPE_NAME = { bolt: '弾', beam: '光線', pillar: '柱', rain: '雨', explosion: '爆発', wall: '壁', summon: '召喚' };
 function bookFind(key) { return BOOK.spells.find(x => x.key === key) || null; }
 function slotSpell(slot) { const a = SLOTMAP[slot]; if (!a) return null; if (a.t === 'ch') { const sp = bookFind(a.key); return sp ? { t: 'ch', sp } : null; } if (a.t === 'base' && learned(a.id)) return { t: 'base', id: a.id }; return null; }
+// G は いつ押しても「最後に唱えた、まだ覚えていない中二病魔法」を覚える（6 秒で消えて短すぎた。circle 2026-09-25）。案内は 10 秒で小さく薄くなり、覚えるか次の魔法まで残る
 function offerLearn(sp) {
   if (bookFind(sp.key)) return;
-  G.learnOffer = { sp, until: G.playT + 6 };
-  const h = $('#learnhint'); h.innerHTML = `<kbd>G</kbd> 「${sp.name}」を おぼえる`; h.classList.add('on');
-  clearTimeout(offerLearn.t); offerLearn.t = setTimeout(() => { h.classList.remove('on'); }, 6000);
+  G.learnOffer = { sp };
+  const h = $('#learnhint'); h.innerHTML = `<kbd>G</kbd> 「${sp.name}」を おぼえる`; h.classList.remove('small'); h.classList.add('on');
+  clearTimeout(offerLearn.t); offerLearn.t = setTimeout(() => { if (G.learnOffer && G.learnOffer.sp === sp) h.classList.add('small'); }, 10000);
+}
+function pressLearn() {
+  const o = G.learnOffer, last = G.lastChuuni;
+  const sp = o && !bookFind(o.sp.key) ? o.sp : last && !bookFind(last.key) ? last : null;
+  if (sp) { openLearn(sp); return; }
+  if (last) voiceLine(`「${last.name}」は もう おぼえている`, 'faint');
+  else voiceLine('おぼえられる 魔法が ない（中二病魔法を となえると G で おぼえられる）', 'faint');
 }
 function openLearn(sp) {
   if (!sp || G.mode !== 'play') return;
@@ -6865,7 +7094,7 @@ function openLearn(sp) {
   w.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { const v = b.dataset.l; if (v === 'cancel') closeLearn(); else { learnSpell(sp, v === 'book' ? null : v); closeLearn(); } });
   w.userData = sp;
 }
-function closeLearn() { $('#learn').hidden = true; if (G.mode === 'learn') G.mode = 'play'; requestLock(); }
+function closeLearn() { $('#learn').hidden = true; if (G.mode === 'learn') G.mode = 'play'; requestLock(); const sp = $('#learn').userData; if (sp && !bookFind(sp.key)) { offerLearn(sp); $('#learnhint').classList.add('small'); } } // やめたときは 小さな案内に もどす
 function learnSpell(sp, slot) {
   if (!bookFind(sp.key)) {
     if (BOOK.spells.length >= BOOK.max) { log(`じゅもんのしょが いっぱいだ（${BOOK.max}こ まで）。 Esc の じゅもんのしょで けしてから おぼえよう。`, 'warn'); sfx('no', null, { ui: true }); return false; }
@@ -6896,7 +7125,7 @@ function bookSlotsHUD() {
 }
 function bookHTML() {
   const base = Object.entries(LEARN).filter(([lv]) => P.lv >= +lv).map(([, k]) => k);
-  const tag = (slot, a) => { const m = SLOTMAP[slot]; const on = m ? (m.t === a.t && (m.key === a.key || m.id === a.id)) : (slot !== 'R' && a.t === 'base' && (slot === 'Q' ? spellQ() === a.id : spellE() === a.id)); return `<button class="btn sm${on ? ' on' : ''}" data-as="${slot}" data-t="${a.t}" data-k="${a.key || a.id}" type="button">${slot}</button>`; };
+  const tag = (slot, a) => { const m = SLOTMAP[slot]; const on = m ? (m.t === a.t && (a.t === 'ch' ? m.key === a.key : m.id === a.id)) : (slot !== 'R' && a.t === 'base' && (slot === 'Q' ? spellQ() === a.id : spellE() === a.id)); return `<button class="btn sm${on ? ' on' : ''}" data-as="${slot}" data-t="${a.t}" data-k="${a.key || a.id}" type="button">${slot}</button>`; };
   const rows = base.map(k => `<div class="brow"><span class="bn">${SPELL[k].name}<small>もとの呪文</small></span><span class="bm">MP${SPELL[k].mp}</span>${tag('Q', { t: 'base', id: k })}${tag('E', { t: 'base', id: k })}${tag('R', { t: 'base', id: k })}<span></span></div>`);
   for (const sp of BOOK.spells) { const st = chuuniStats(sp); rows.push(`<div class="brow"><span class="bn" style="color:${sp.colors[1]}">${sp.name}<small>${sp.yomi}・${ELEM_GLYPH[sp.elem]}・${spellKind(sp)}・威力${st.tier}</small></span><span class="bm">MP${st.mp}</span>${tag('Q', { t: 'ch', key: sp.key })}${tag('E', { t: 'ch', key: sp.key })}${tag('R', { t: 'ch', key: sp.key })}<button class="btn sm" data-del="${sp.key}" type="button">けす</button></div>`); }
   return `<div class="win book"><h3>じゅもんのしょ（おぼえた魔法 ${BOOK.spells.length}/${BOOK.max}）</h3><div class="blist">${rows.join('')}</div><div style="font-size:.75rem;color:var(--dim);margin-top:4px">中二病魔法を となえた あと G で おぼえる。 名前か 読みを 声で いっても となえられる。</div></div>`;
@@ -6912,14 +7141,14 @@ function bindBook(rerender) {
   s.el = d; s.n = d.querySelector('.n'); s.cd = d.querySelector('.cd'); s.nmEl = d.querySelector('.nm'); SLOTS.push(s); BASE_ICON.R = EMPTY; }
 
 function partySave() {
-  const ser = a => ({ name: a.name, cls: a.cls, human: a.human, lv: a.lv, exp: a.exp, w: a.w, ar: a.ar, tactic: a.tactic, freeText: a.freeText, rules: a.rules, understood: a.understood });
+  const ser = a => ({ name: a.name, cls: a.cls, human: a.human, lv: a.lv, exp: a.exp, w: a.w, ar: a.ar, tactic: a.tactic, freeText: a.freeText, rules: a.rules, understood: a.understood, stance: a.stance || null });
   return { m: PARTY.members.map(ser), r: PARTY.reserve.map(ser), ev: PARTY.events };
 }
 function partyLoad(d) {
   if (!d) return;
   for (const a of PARTY.members) removeAllyModel(a); PARTY.members = []; PARTY.reserve = [];
   PARTY.events = d.ev || {};
-  const mk = o => { const a = newAlly(o); Object.assign(a, { lv: o.lv, exp: o.exp, w: o.w || 0, ar: o.ar || 0, tactic: o.tactic || 'attack', freeText: o.freeText || '', rules: sanitizeRules(o.rules), understood: o.understood || [] }); const s2 = allyStats(a); a.hp = s2.maxhp; a.mp = s2.maxmp; return a; };
+  const mk = o => { const a = newAlly(o); Object.assign(a, { lv: o.lv, exp: o.exp, w: o.w || 0, ar: o.ar || 0, tactic: o.tactic || 'attack', freeText: o.freeText || '', rules: sanitizeRules(o.rules), understood: o.understood || [], stance: STANCE_ROLE[o.stance] ? o.stance : null }); const s2 = allyStats(a); a.hp = s2.maxhp; a.mp = s2.maxmp; return a; };
   for (const o of d.m || []) { const a = mk(o); PARTY.members.push(a); buildAlly(a); }
   for (const o of d.r || []) PARTY.reserve.push(mk(o));
   for (const id in HUMANS) { const h = HUMANS[id]; if (PARTY.events[id] === 'joined' && h.npc) { h.npc.g.parent && h.npc.g.parent.remove(h.npc.g); const i = INTER.indexOf(h.inter); if (i >= 0) INTER.splice(i, 1); } }
